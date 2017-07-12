@@ -1,0 +1,85 @@
+body {
+  font-family: 'Open Sans', sans-serif;
+}
+.buttons {
+  display: flex;
+}
+.buttons form {
+  width: 100%;
+  margin: 10px;
+}
+.buttons .button {
+  background-color: gray;
+  width: 100%;
+  text-align: center;
+  color: white;
+  font-size: 30px;
+  position: relative;
+  height: 102px;
+  border: 0;
+  border-radius: 10px;
+}
+.buttons .button {
+  text-decoration: none;
+  font-size: 40px;
+}
+.buttons .button .help {
+  font-size: 11px;
+  display: block;
+  opacity: 0.7;
+}
+.buttons .button .keybinding {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  background-color: white;
+  border-radius: 100%;
+  font-size: 14px;
+  width: 20px;
+  height: 20px;
+  text-align: center;
+  display: block;
+  color: #7f8c8d;
+  line-height: 20px;
+  opacity: 0.5;
+}
+.buttons .button-yes, .color-yes {
+  background-color: #27ae60;
+}
+.buttons .button-no, .color-no {
+  background-color: #c0392b;
+}
+.buttons .button-skip, .color-skip {
+  background-color: #7f8c8d;
+}
+
+.navbar-brand span {
+  font-size: 16px;
+  padding-left: 10px;
+  color: #065378;
+  font-weight: 700;
+}
+.navbar-brand img {
+  height: 22px;
+  display: inline-block;
+}
+.navbar { border-radius: 0; border-top: 0; }
+.navbar-default .navbar-text { color: #065378; }
+.navbar-default .training-problem {
+    float: left;
+    height: 50px;
+    line-height: 50px;
+    padding: 0px 20px;
+    color: black;
+}
+.navbar-default .training-problem:hover,
+.navbar-default .navbar-nav>li>a:hover {
+  background-color: gray;
+  color: white;
+  text-decoration: none;
+}
+
+pre {
+  padding: 0;
+  margin: 20px 0px;
+}

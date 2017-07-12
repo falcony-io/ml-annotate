@@ -1,0 +1,8 @@
+*.pyc
+.env
+*.DS_Store
+.coverage
+htmlcov/
+.cache
+__pycache__
+.virtualenv

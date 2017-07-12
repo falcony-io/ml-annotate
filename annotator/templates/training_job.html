@@ -1,0 +1,51 @@
+{% extends "layout_problem.html" %}
+{% block body %}
+  <h3>Processed jobs</h3>
+  <p style="padding-bottom: 30px;">Annotator does not include any machine learning components but you may use table <strong>training_job</strong> to provide information to the front-end about training accuracy.</p>
+
+  {% if not data %}
+  <h4>How to add a new processed job</h4>
+  <pre><code class="sql">
+  INSERT INTO training_job (problem_id, accuracy, created_at)
+  VALUES ('{{ problem.id }}', 0.80, NOW());
+  </code></pre>
+  {% endif %}
+
+  {% if data %}
+    <table id="data-table" class="table">
+      <thead>
+        <tr>
+          <th>Id</th>
+          <th>Accuracy</th>
+          <th>Created at</th>
+        </tr>
+      </thead>
+    </table>
+    <script>
+    $(function() {
+      function encodeHTML(s) {
+        return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+      }
+      $('#data-table').DataTable({
+        data: {{ data|tojson }},
+        pageLength: 100,
+        order: [[ 2, 'desc' ]],
+        columns: [
+          {},
+          {
+            render: function ( data, type, row ) {
+              return data !== null ? Math.round(data*1000)/1000 : '';
+            }
+          },
+          {},
+        ]
+      })
+    });
+    </script>
+    <style>
+    #data-table td:first-child {
+      font-size: 8px;
+    }
+    </style>
+  {% endif %}
+{% endblock %}

@@ -1,0 +1,25 @@
+{% extends 'layout_base.html' %}
+{% block body %}
+  <h1 style="font-weight: bold; display: block; text-align: center; margin-top: 100px; padding-bottom: 10px;">Annotator</h1>
+  {% if problems %}
+    <p>Select a label you want to train. See README.rst on how to add new training problems.</p>
+    <table class="table" style="margin-top: 20px;">
+      <thead>
+        <tr>
+          <th>Label</th>
+          <th>Dataset size</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for problem in problems %}
+          <tr>
+            <td><a href="{{ url_for('train', problem_id=problem.id) }}">{{ problem.label }}</a></td>
+            <td>{{ problem.dataset|length }}</td>
+          </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  {% else %}
+    <p>You haven't yet added any data. Use <code>flask import_fake_data</code> to generate fake data to get started.</p>
+  {% endif %}
+{% endblock %}

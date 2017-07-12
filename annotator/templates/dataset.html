@@ -1,0 +1,52 @@
+{% extends "layout_problem.html" %}
+{% block body %}
+  <h3>Dataset</h3>
+  <p style="margin-bottom: 40px;">Here is the data related to the problem. If you are running analysis on this data, you can use script to modify columns <strong>probability</strong> and <strong>sort_value</strong> of the data.</p>
+  <table id="data-table" class="table">
+    <thead>
+      <tr>
+        <th>Id</th>
+        <th>Free text</th>
+        <th>Entity id</th>
+        <th>Table name</th>
+        <th>Probability</th>
+        <th>Sort value</th>
+      </tr>
+    </thead>
+  </table>
+  <script>
+  $(function() {
+    function encodeHTML(s) {
+      return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+    }
+    $('#data-table').DataTable({
+      data: {{ data|tojson }},
+      pageLength: 100,
+      columns: [
+        {},
+        {},
+        {},
+        {},
+        {
+          render: function ( data, type, row ) {
+            return data !== null ? Math.round(data*1000)/1000 : '';
+          }
+        },
+        {
+          render: function ( data, type, row ) {
+            return data !== null ? Math.round(data*1000)/1000 : '';
+          }
+        },
+      ]
+    })
+  });
+  </script>
+  <style>
+  #data-table td:first-child {
+    font-size: 8px;
+  }
+  #data-table td:nth-child(3) {
+    font-size: 8px;
+  }
+  </style>
+{% endblock %}

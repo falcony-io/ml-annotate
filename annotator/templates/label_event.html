@@ -1,0 +1,47 @@
+{% extends "layout_problem.html" %}
+{% block body %}
+  <h3>Added labels</h3>
+  <p style="margin-bottom: 40px;">Here is a list of labels you have added.</p>
+  <table id="data-table" class="table">
+    <thead>
+      <tr>
+        <th>Id</th>
+        <th>Label</th>
+        <th>Free text</th>
+        <th>Probability</th>
+      </tr>
+    </thead>
+  </table>
+  <script>
+  $(function() {
+    function encodeHTML(s) {
+      return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+    }
+    $('#data-table').DataTable({
+      data: {{ data|tojson }},
+      pageLength: 100,
+      columns: [
+        { },
+        {
+          render: function ( data, type, row ) {
+            if (data === true) return '<span class="badge color-yes">true</span>';
+            if (data === false) return '<span class="badge color-no">false</span>';
+            if (data === null) return '<span class="badge color-skip">skip</span>';
+          }
+        },
+        {},
+        {
+          render: function ( data, type, row ) {
+            return data !== null ? Math.round(data*1000)/1000 : '';
+          }
+        },
+      ]
+    })
+  });
+  </script>
+  <style>
+  #data-table td:first-child {
+    font-size: 8px;
+  }
+  </style>
+{% endblock %}

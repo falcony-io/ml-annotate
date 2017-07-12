@@ -1,0 +1,12 @@
+Flask-Login==0.4.0
+Flask-SQLAlchemy==2.2
+Flask-SSLify==0.1.5
+Flask==0.12.2
+psycopg2==2.7.3
+requests==2.18.3
+SQLAlchemy-Utils==0.32.14
+SQLAlchemy==1.1.12
+sh==1.12.14
+alembic==0.9.4
+gunicorn==19.7.1
+flask-shell-ipython==0.3.0

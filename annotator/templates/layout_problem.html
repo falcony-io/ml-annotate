@@ -1,0 +1,18 @@
+{% extends "layout_base.html" %}
+{% block header %}
+   <nav class="navbar navbar-default">
+    <div class="container">
+      <!-- Brand and toggle get grouped for better mobile display -->
+      <div class="navbar-header">
+        <a class="navbar-brand" href="/" style="font-weight: bold; color: black;">Annotator</a>
+        <a class="training-problem" href="/"><strong>label:</strong> {{ problem.label }}</a>
+        <ul class="nav navbar-nav">
+          <li {% if request.url_rule.endpoint == 'train' %}class="active"{% endif %}><a href="{{ url_for('train', problem_id=problem.id) }}">Train new labels</a></li>
+          <li {% if request.url_rule.endpoint == 'dataset' %}class="active"{% endif %}><a href="{{ url_for('dataset', problem_id=problem.id) }}">Data</a></li>
+          <li {% if request.url_rule.endpoint == 'label_event' %}class="active"{% endif %}><a href="{{ url_for('label_event', problem_id=problem.id) }}">Added labels</a></li>
+          <li {% if request.url_rule.endpoint == 'training_job' %}class="active"{% endif %}><a href="{{ url_for('training_job', problem_id=problem.id) }}">Processed jobs</a></li>
+        </ul>
+      </div>
+    </div><!-- /.container-fluid -->
+  </nav>
+{% endblock %}
