@@ -1,16 +1,16 @@
-Annotator
+ML-Annotate
 ===============
 
-You can use Annotator to label text data for machine learning purposes. Only binary labels & text data is supported.
+You can use ML-Annotate to label text data for machine learning purposes. Only binary labels & text data is supported.
 
 .. image:: http://i.imgur.com/B1hVI1f.png
 
 Running locally
 -----------
 
-Annotator requires Python 3.5 or later.
+ML-Annotate requires Python 3.5 or later.
 
-1. Create neccessary virtualenv for Annotator and install all packages::
+1. Create neccessary virtualenv for ML-Annotate and install all packages::
 
     virtualenv --python python3 .virtualenv
     source .virtualenv/bin/activate
@@ -40,7 +40,7 @@ Annotator requires Python 3.5 or later.
 Adding data
 -----------
 
-Annotator includes iPython shell for inserting data. Start by running::
+ML-Annotate includes iPython shell for inserting data. Start by running::
 
     flask shell
 
@@ -68,7 +68,7 @@ Then you will have access to the application shell. Here's an example on how to 
 Deploying to Heroku
 -----------
 
-This guide expects that you are deploying Annotator to Heroku.
+This guide expects that you are deploying ML-Annotate to Heroku.
 
 1. Create new Heroku application.
 2. Set up the Heroku application Git remotes and push the application to production::
@@ -76,7 +76,7 @@ This guide expects that you are deploying Annotator to Heroku.
     git remote add production git@heroku.com:APP_NAME_HERE.git
     git push production
 
-3. You might notice that the push fails since the passowrd is not set. Annotator requires that your production setup is secured by a password. Setup password and other configuration::
+3. You might notice that the push fails since the passowrd is not set. ML-Annotate requires that your production setup is secured by a password. Setup password and other configuration::
 
     heroku config:set PASSWORD=yoursupersecretpassword --app APP_NAME_HERE
     heroku addons:create heroku-postgresql:hobby-dev --app APP_NAME_HERE
@@ -87,7 +87,7 @@ This guide expects that you are deploying Annotator to Heroku.
 
     heroku run "flask createtables" --app APP_NAME_HERE
 
-5. You should be able to access your instance of Annotator now by going to *YOUR_APP_NAME.herokuapp.com*. Username is *admin* and the password is the one you set previously (yoursupersecretpassword).
+5. You should be able to access your instance of ML-Annotate now by going to *YOUR_APP_NAME.herokuapp.com*. Username is *admin* and the password is the one you set previously (yoursupersecretpassword).
 
 Making modifications
 -----------
