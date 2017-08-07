@@ -4,7 +4,7 @@
     <div class="container">
       <!-- Brand and toggle get grouped for better mobile display -->
       <div class="navbar-header">
-        <a class="navbar-brand" href="/" style="font-weight: bold; color: black;">Annotator</a>
+        <a class="navbar-brand" href="/" style="font-weight: bold; color: black;">ML-Annotate</a>
         <a class="training-problem" href="/"><strong>label:</strong> {{ problem.label }}</a>
         <ul class="nav navbar-nav">
           <li {% if request.url_rule.endpoint == 'train' %}class="active"{% endif %}><a href="{{ url_for('train', problem_id=problem.id) }}">Train new labels</a></li>
