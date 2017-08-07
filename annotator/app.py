@@ -2,6 +2,7 @@ import os
 
 import click
 import requests
+import sys
 from flask import (
     flash,
     Flask,
@@ -48,6 +49,9 @@ assert app.debug or len(app.config['PASSWORD']) >= 5, (
 )
 assert app.debug or os.environ.get('SECRET_KEY'), (
     'Should run in debug mode or should have SECRET_KEY set'
+)
+assert sys.version_info >= (3, 4), (
+    'Should run with Python 3.4 or later.'
 )
 
 
