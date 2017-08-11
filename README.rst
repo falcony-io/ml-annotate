@@ -3,7 +3,7 @@ ML-Annotate
 
 You can use ML-Annotate to label text data for machine learning purposes. Only binary labels & text data is supported.
 
-.. image:: http://i.imgur.com/B1hVI1f.png
+.. image:: http://i.imgur.com/JMVU6Ym.png
 
 Running locally
 -----------
