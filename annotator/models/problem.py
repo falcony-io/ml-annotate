@@ -1,3 +1,6 @@
+from sqlalchemy import select, func
+from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy.orm import object_session
 from sqlalchemy_utils import (
     UUIDType
 )
@@ -24,3 +27,15 @@ class Problem(db.Model):
         server_default=db.func.now(),
         nullable=False
     )
+
+    @hybrid_property
+    def dataset_count(self):
+        from annotator.models import Dataset
+
+        return object_session(self).query(Dataset).filter(Dataset.problem == self).count()
+
+    @dataset_count.expression
+    def dataset_count(cls):
+        from annotator.models import Dataset
+
+        return select([func.count(Dataset.id)]).where(Dataset.problem_id == cls.id).label('dataset_count')

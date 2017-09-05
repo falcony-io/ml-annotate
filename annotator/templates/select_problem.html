@@ -14,7 +14,7 @@
         {% for problem in problems %}
           <tr>
             <td><a href="{{ url_for('train', problem_id=problem.id) }}">{{ problem.label }}</a></td>
-            <td>{{ problem.dataset|length }}</td>
+            <td>{{ problem.dataset_count }}</td>
           </tr>
         {% endfor %}
       </tbody>
