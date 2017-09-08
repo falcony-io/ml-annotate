@@ -42,7 +42,7 @@
           render: function ( data, type, row ) {
             return (data || []).map(x => {
                 if (x === true) return '<span class="badge color-yes">true</span>';
-                if (x === false) return '<span class="badge color-no">true</span>';
+                if (x === false) return '<span class="badge color-no">false</span>';
                 if (x === null) return '<span class="badge color-skip">skip</span>';
             }).join(' ');
           }
