@@ -141,3 +141,7 @@ html {
   top: 10px;
   left: 10px;
 }
+.btn-small {
+  padding: 4px 8px;
+  font-size: 10px;
+}

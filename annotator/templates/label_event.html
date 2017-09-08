@@ -9,6 +9,7 @@
         <th>Label</th>
         <th>Free text</th>
         <th>Probability</th>
+        <th></th>
       </tr>
     </thead>
   </table>
@@ -33,6 +34,17 @@
         {
           render: function ( data, type, row ) {
             return data !== null ? Math.round(data*1000)/1000 : '';
+          }
+        },
+        {
+          render: function ( data, type, row ) {
+            var url = {{ url_for('delete_label_event', id='__EVENT_ID__', problem_id=problem.id)|tojson }}.replace('__EVENT_ID__', row[0]);
+
+            return `
+            <form action="${url}" method="POST">
+              <button type="submit" class="btn btn-default btn-small">Undo</button>
+            </form>
+            `;
           }
         },
       ]
