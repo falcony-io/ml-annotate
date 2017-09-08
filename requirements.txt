@@ -12,3 +12,4 @@ gunicorn==19.7.1
 flask-shell-ipython==0.3.0
 passlib==1.7.1
 Flask-WTF==0.12
+Flask-Assets==0.12

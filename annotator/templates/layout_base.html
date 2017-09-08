@@ -15,7 +15,9 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/datatables/1.10.15/js/dataTables.bootstrap4.js" integrity="sha256-bDE6eVDuBVRv1glBD2OILEEbWFAo6vUYgTTBkWV+LVI=" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mousetrap/1.6.1/mousetrap.js" integrity="sha256-hP0lGqjBtLc6QkS0oWrHNYJRyJKqJj8DgJy7axC1b7Q=" crossorigin="anonymous"></script>
     <script src="/static/js/main.js"></script>
-    <link href="/static/styles/styles.css" rel="stylesheet">
+    {% assets "css_all" %}
+        <link href="{{ ASSET_URL }}" rel="stylesheet">
+    {% endassets %}
   </head>
   <body class="{% block bodyClass %}{% endblock %}">
   {% block header %}{% endblock %}

@@ -12,6 +12,7 @@ from flask import (
     url_for,
     abort
 )
+from flask_assets import Environment, Bundle
 from flask_login import current_user, login_required, login_user, logout_user
 from flask_sslify import SSLify
 from sh import createdb, dropdb, psql
@@ -34,6 +35,10 @@ def shell_context():
 
 
 app = Flask(__name__)
+assets = Environment(app)
+assets.init_app(app)
+css = Bundle('styles/styles.css', output='gen/all.css')
+assets.register('css_all', css)
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
     'DATABASE_URL',
     'postgres://localhost/annotator'
