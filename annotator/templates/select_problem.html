@@ -25,7 +25,7 @@
       <pre><code class="python">u = User.query.filter_by(username={{ current_user.username|tojson }}).first()
 u.is_superuser = True
 # OR
-db.session.add(UserProblem(user=u, problem=Problem.query.get('PROBLEM_ID').first()))
+db.session.add(UserProblem(user=u, problem=Problem.query.get('PROBLEM_ID')))
 db.session.commit()</code></pre>
     {% else %}
       <p>You haven't yet added any data. Use <code>flask import_fake_data</code> to generate fake data to get started.</p>

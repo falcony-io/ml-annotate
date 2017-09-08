@@ -27,6 +27,7 @@ ML-Annotate requires Python 3.5 or later.
 3. Create database. This requires you to have PostgreSQL installed so you should have command line tools such as createdb::
 
     .virtualenv/bin/flask resetdb
+    .virtualenv/bin/flask add_user admin password
 
 4. Normally you would want to import your data at this point. We have included a test script to make up some data for testing purposes::
 
@@ -76,18 +77,35 @@ This guide expects that you are deploying ML-Annotate to Heroku.
     git remote add production git@heroku.com:APP_NAME_HERE.git
     git push production
 
-3. You might notice that the push fails since the passowrd is not set. ML-Annotate requires that your production setup is secured by a password. Setup password and other configuration::
+3. Setup configuration::
 
-    heroku config:set PASSWORD=yoursupersecretpassword --app APP_NAME_HERE
     heroku addons:create heroku-postgresql:hobby-dev --app APP_NAME_HERE
     heroku config:set SECRET_KEY=$(python3 -c 'import binascii, os; print(binascii.hexlify(os.urandom(24)).decode())') --app APP_NAME_HERE
     heroku config:set FLASK_APP=annotator/app.py --app APP_NAME_HERE
 
-4. Then create the tables::
+4. Then create the tables and create the user::
 
     heroku run "flask createtables" --app APP_NAME_HERE
+    heroku run "flask add_user admin password" --app APP_NAME_HERE
 
 5. You should be able to access your instance of ML-Annotate now by going to *YOUR_APP_NAME.herokuapp.com*. Username is *admin* and the password is the one you set previously (yoursupersecretpassword).
+
+
+Users
+-----------
+
+You can add admin users with the command::
+
+    flask add_user username password
+
+If you need to add more specific permissions, you can use **flask shell**::
+
+    flask shell
+    u = User(username='username', password='password')
+    db.session.add(u)
+    db.session.add(UserProblem(user=u, problem=Problem.query.get('PROBLEM_ID')))
+    db.session.commit()
+
 
 Making modifications
 -----------
