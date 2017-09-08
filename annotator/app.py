@@ -169,6 +169,10 @@ def dataset(problem_id):
             Dataset.table_name,
             Dataset.probability,
             Dataset.sort_value,
+            db.select(
+                [db.func.array_agg(LabelEvent.label_matches)],
+                from_obj=LabelEvent
+            ).where(LabelEvent.data_id == Dataset.id).correlate(Dataset.__table__).label('label_matches')
         )
         .filter(Dataset.problem_id == problem.id)
         .order_by(Dataset.id.asc())
