@@ -10,14 +10,16 @@ from flask import (
     render_template,
     request,
     url_for,
-    Response,
+    abort
 )
-from functools import wraps
+from flask_login import current_user, login_required, login_user, logout_user
 from flask_sslify import SSLify
 from sh import createdb, dropdb, psql
+from wtforms.fields import PasswordField, TextField
+from flask_wtf import Form
 
-from .extensions import db
-from .models import Dataset, LabelEvent, Problem, TrainingJob
+from .extensions import db, login_manager
+from .models import Dataset, LabelEvent, Problem, TrainingJob, User
 
 
 def shell_context():
@@ -41,12 +43,14 @@ app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'development')
 app.shell_context_processor(shell_context)
 sslify = SSLify(app)
 db.init_app(app)
-app.config['PASSWORD'] = os.environ.get('PASSWORD', '')
+login_manager.init_app(app)
 
 
-assert app.debug or len(app.config['PASSWORD']) >= 5, (
-    'Should run in debug mode or should have PASSWORD set'
-)
+class LoginForm(Form):
+    username = TextField('Username')
+    password = PasswordField('Password')
+
+
 assert app.debug or os.environ.get('SECRET_KEY'), (
     'Should run in debug mode or should have SECRET_KEY set'
 )
@@ -55,46 +59,78 @@ assert sys.version_info >= (3, 4), (
 )
 
 
-def check_auth(username, password):
-    """This function is called to check if a username /
-    password combination is valid.
-    """
-    return username == 'admin' and password == app.config['PASSWORD']
+def assert_rights_to_problem(problem):
+    print(current_user, problem, current_user.can_access_problem(problem))
+    if not current_user.can_access_problem(problem):
+        print(current_user, problem, current_user.can_access_problem(problem))
+        abort(403)
 
 
-def authenticate():
-    """Sends a 401 response that enables basic auth"""
-    return Response(
-        'Could not verify your access level for that URL.\n'
-        'You have to login with proper credentials', 401,
-        {'WWW-Authenticate': 'Basic realm="Login Required"'}
-    )
+@app.errorhandler(404)
+def page_not_found(e):
+    return render_template('404.html'), 404
 
 
-def requires_auth(f):
-    @wraps(f)
-    def decorated(*args, **kwargs):
-        if app.config['PASSWORD']:
-            auth = request.authorization
-            if not auth or not check_auth(auth.username, auth.password):
-                return authenticate()
-        return f(*args, **kwargs)
-    return decorated
+@app.errorhandler(403)
+def forbidden(e):
+    return render_template('403.html'), 404
+
+
+@app.errorhandler(500)
+def server_error(e):
+    return render_template('500.html'), 500
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(user_id)
 
 
 @app.route('/')
-@requires_auth
+@login_required
 def index():
+    print(current_user)
     return render_template(
         'select_problem.html',
-        problems=Problem.query.order_by(Problem.created_at).all()
+        problems=Problem.query.for_user(current_user).order_by(
+            Problem.created_at
+        ).all(),
+        are_there_problems=Problem.query.count() > 0,
+        users=User.query
     )
 
 
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    form = LoginForm()
+    if current_user.is_authenticated:
+        return redirect(url_for('index'))
+
+    if request.method == 'POST':
+        user = User.query.filter(User.username == form.username.data).first()
+        if (
+            user and
+            user.password == form.password.data
+        ):
+            login_user(user)
+            return redirect(url_for('index'))
+        else:
+            flash('Username or password wrong')
+
+    return render_template('login.html', form=form)
+
+
+@app.route('/logout')
+def logout():
+    logout_user()
+    return redirect(url_for('login'))
+
+
 @app.route('/<uuid:problem_id>/label_event')
-@requires_auth
+@login_required
 def label_event(problem_id):
     problem = Problem.query.get(problem_id)
+    assert_rights_to_problem(problem)
     data = (
         db.session.query(
             LabelEvent.id,
@@ -115,9 +151,11 @@ def label_event(problem_id):
 
 
 @app.route('/<uuid:problem_id>/dataset')
-@requires_auth
+@login_required
 def dataset(problem_id):
     problem = Problem.query.get(problem_id)
+    print(problem)
+    assert_rights_to_problem(problem)
     data = (
         db.session.query(
             Dataset.id,
@@ -139,9 +177,10 @@ def dataset(problem_id):
 
 
 @app.route('/<uuid:problem_id>/training_job')
-@requires_auth
+@login_required
 def training_job(problem_id):
     problem = Problem.query.get(problem_id)
+    assert_rights_to_problem(problem)
     data = (
         db.session.query(
             TrainingJob.id,
@@ -160,9 +199,10 @@ def training_job(problem_id):
 
 
 @app.route('/<uuid:problem_id>/train', methods=['GET', 'POST'])
-@requires_auth
+@login_required
 def train(problem_id):
     problem = Problem.query.get(problem_id)
+    assert_rights_to_problem(problem)
 
     if not Dataset.query.filter(Dataset.problem_id == problem.id).count():
         return render_template('train_no_data.html', problem=problem)
@@ -222,7 +262,7 @@ def train(problem_id):
 
 
 @app.route('/<uuid:problem_id>/delete_label_event/<uuid:id>', methods=['POST'])
-@requires_auth
+@login_required
 def delete_label_event(problem_id, id):
     label_event = LabelEvent.query.get(id)
     if label_event:
@@ -266,6 +306,19 @@ def _createtables():
     from alembic import command
     alembic_cfg = Config('alembic.ini')
     command.stamp(alembic_cfg, 'head')
+
+
+@app.cli.command()
+@click.argument('username')
+@click.argument('password')
+def add_user(username, password):
+    db.session.add(User(
+        username=username,
+        password=password,
+        is_superuser=True
+    ))
+    db.session.commit()
+    click.echo('User %s added' % username)
 
 
 @app.cli.command()

@@ -34,3 +34,6 @@ class TrainingJob(db.Model):
         server_default=db.func.now(),
         nullable=False
     )
+
+    def __repr__(self):
+        return '<TrainingJob problem=%r>' % self.problem.id

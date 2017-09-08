@@ -39,3 +39,6 @@ class LabelEvent(db.Model):
         server_default=db.func.now(),
         nullable=False
     )
+
+    def __repr__(self):
+        return '<LabelEvent label=%r>' % self.label

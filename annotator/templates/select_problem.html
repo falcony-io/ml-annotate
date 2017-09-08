@@ -20,6 +20,46 @@
       </tbody>
     </table>
   {% else %}
-    <p>You haven't yet added any data. Use <code>flask import_fake_data</code> to generate fake data to get started.</p>
+    {% if are_there_problems %}
+      <p>This user does not have access to any problems. Use <code>flask shell</code> to open iPython shell and give this user rights:</p>
+      <pre><code class="python">u = User.query.filter_by(username={{ current_user.username|tojson }}).first()
+u.is_superuser = True
+# OR
+db.session.add(UserProblem(user=u, problem=Problem.query.get('PROBLEM_ID').first()))
+db.session.commit()</code></pre>
+    {% else %}
+      <p>You haven't yet added any data. Use <code>flask import_fake_data</code> to generate fake data to get started.</p>
+    {% endif %}
+  {% endif %}
+
+  {% if current_user.is_superuser %}
+    <h1>List of users</h1>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>User</th>
+          <th>Problems</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for user in users %}
+        <tr>
+          <td>{{ user.username }}</td>
+          <td>
+            {% if user.is_superuser %}
+              <span class="badge">superuser</span>
+            {% else %}
+              {% for user_problem in user.problems[0:3] %}
+                <a href="{{ url_for('train', problem_id=user_problem.problem.id) }}">{{ user_problem.problem.label }}</a>
+              {% endfor %}
+              {% if user.problems|length > 3 %}
+                and more
+              {% endif %}
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   {% endif %}
 {% endblock %}

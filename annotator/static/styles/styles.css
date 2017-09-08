@@ -83,3 +83,61 @@ pre {
   padding: 0;
   margin: 20px 0px;
 }
+
+html {
+  width: 100%;
+  height: 100%;
+}
+
+.login-container {
+  max-width: 345px;
+  margin: 0 auto;
+}
+.login-wrapper h3 {
+  text-transform: uppercase;
+  font-size: 15px;
+  font-weight: 700;
+}
+.dark-page {
+  background-image: linear-gradient(-20deg, #6e45e2 0%, #88d3ce 100%);
+  width: 100%;
+  height: 100%;
+  display: grid;
+}
+.dark-page .container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.dark-page .input-wrapper {
+  position: relative;
+  margin-bottom: 15px;
+}
+.dark-page .input {
+  width: 100%;
+  background-color: white;
+  padding: 12px 12px;
+  border: 0;
+  border-radius: 0;
+  height: auto;
+}
+.dark-page h1 {
+  color: white;
+}
+.dark-page h3 {
+  color: white;
+}
+.dark-page .btn {
+  width: 100%;
+  border-radius: 0;
+  background-color: #3498db;
+  padding: 10px;
+  color: white;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+.alert {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+}

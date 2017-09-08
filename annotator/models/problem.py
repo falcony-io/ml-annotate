@@ -1,3 +1,5 @@
+from flask_login import current_user
+from flask_sqlalchemy import BaseQuery
 from sqlalchemy import select, func
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import object_session
@@ -8,8 +10,15 @@ from sqlalchemy_utils import (
 from annotator.extensions import db
 
 
+class ProblemQuery(BaseQuery):
+    def for_user(self, user):
+        from annotator.models import User
+        return self.filter(User.can_access_problem(self), User.id == current_user.id)
+
+
 class Problem(db.Model):
     __tablename__ = 'problem'
+    query_class = ProblemQuery
 
     id = db.Column(
         UUIDType(binary=False),
@@ -39,3 +48,6 @@ class Problem(db.Model):
         from annotator.models import Dataset
 
         return select([func.count(Dataset.id)]).where(Dataset.problem_id == cls.id).label('dataset_count')
+
+    def __repr__(self):
+        return '<Problem label=%r>' % self.label

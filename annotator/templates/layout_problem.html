@@ -10,6 +10,7 @@
           <li {% if request.url_rule.endpoint == 'dataset' %}class="active"{% endif %}><a href="{{ url_for('dataset', problem_id=problem.id) }}">Data</a></li>
           <li {% if request.url_rule.endpoint == 'label_event' %}class="active"{% endif %}><a href="{{ url_for('label_event', problem_id=problem.id) }}">Added labels</a></li>
           <li {% if request.url_rule.endpoint == 'training_job' %}class="active"{% endif %}><a href="{{ url_for('training_job', problem_id=problem.id) }}">Processed jobs</a></li>
+          <li><a href="{{ url_for('logout') }}">Logout</a></li>
         </ul>
       </div>
     </div>

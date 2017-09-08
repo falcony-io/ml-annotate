@@ -65,3 +65,6 @@ class Dataset(db.Model):
             name='chk_dataset_probability'
         ),
     )
+
+    def __repr__(self):
+        return '<Dataset table_name=%r>' % self.table_name

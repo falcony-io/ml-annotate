@@ -1,50 +1,65 @@
-# # -*- coding: utf-8 -*-
-# import random
-# import string
-# from datetime import datetime
+from flask_login import UserMixin
+from sqlalchemy.ext.hybrid import hybrid_method
+from sqlalchemy_utils import (
+    PasswordType,
+    UUIDType
+)
 
-# from flask_login import UserMixin
-# from flask_sqlalchemy import BaseQuery
-# from sqlalchemy.ext.hybrid import hybrid_property
-# from sqlalchemy.orm import relation
-# from sqlalchemy_utils import (
-#     EmailType,
-#     LocaleType,
-#     PasswordType,
-#     TSVectorType,
-#     UUIDType
-# )
-
-# from annotator.extensions import db
-
-# from .organization import Organization
+from annotator.extensions import db
 
 
-# class Dataset(db.Model):
-#     __tablename__ = 'dataset'
+class User(db.Model, UserMixin):
+    __tablename__ = 'user'
 
-#     id = db.Column(
-#         UUIDType(binary=False),
-#         server_default=db.func.uuid_generate_v4(),
-#         primary_key=True
-#     )
+    id = db.Column(
+        UUIDType(binary=False),
+        server_default=db.func.uuid_generate_v4(),
+        primary_key=True
+    )
 
-#     table_name = db.Column(
-#         db.Unicode(255),
-#         nullable=False,
-#     )
+    username = db.Column(
+        db.Unicode(255),
+        nullable=False,
+        unique=True,
+        index=True
+    )
 
-#     free_text = db.Column(
-#         db.Text(),
-#         nullable=False
-#     )
+    password = db.Column(
+        PasswordType(
+            schemes=['pbkdf2_sha512']
+        ),
+        nullable=False
+    )
 
-#     probability = db.Column(
-#         db.Float(),
-#         nullable=True
-#     )
+    created_at = db.Column(
+        db.DateTime,
+        server_default=db.func.now(),
+        nullable=False
+    )
 
-#     sort_value = db.Column(
-#         db.Float(),
-#         nullable=True
-#     )
+    is_superuser = db.Column(
+        db.Boolean(),
+        nullable=False,
+        default=False,
+        server_default='FALSE'
+    )
+
+    @hybrid_method
+    def can_access_problem(self, problem):
+        from annotator.models import UserProblem
+
+        return self.is_superuser or db.session.query(UserProblem.id).filter(
+            UserProblem.user_id == self.id,
+            UserProblem.problem_id == problem.id
+        ).count() > 0
+
+    @can_access_problem.expression
+    def can_access_problem(cls, problem):
+        from annotator.models import Problem, UserProblem
+
+        return cls.is_superuser | Problem.id.in_(
+            db.session.query(UserProblem.problem_id).filter(UserProblem.user_id == cls.id)
+        )
+
+    def __repr__(self):
+        return '<User username=%r>' % self.username

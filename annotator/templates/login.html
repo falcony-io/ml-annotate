@@ -1,0 +1,22 @@
+{% extends "layout_base.html" %}
+{% block bodyClass %}dark-page{% endblock %}
+{% block body %}
+  <div class="login-wrapper">
+    <h1 style="font-weight: bold; display: block; text-align: center; padding-bottom: 100px;">ML-Annotate</h1>
+    <div class="login-container">
+      <h3>Please login</h3>
+      <form method="POST" role="form" action="{{ url_for('login') }}">
+        {{ form.csrf_token() }}
+        <div class="input-wrapper">
+          {{ form.username(placeholder="Username", class="input", autofocus="autofocus") }}
+        </div>
+        <div class="input-wrapper">
+          {{ form.password(placeholder="Password", class="input", autofocus="autofocus") }}
+        </div>
+
+        <button type="submit" class="btn">Login</button>
+      </form>
+    </div>
+  </div>
+
+{% endblock %}

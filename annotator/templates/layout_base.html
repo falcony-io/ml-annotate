@@ -17,7 +17,7 @@
     <script src="/static/js/main.js"></script>
     <link href="/static/styles/styles.css" rel="stylesheet">
   </head>
-  <body>
+  <body class="{% block bodyClass %}{% endblock %}">
   {% block header %}{% endblock %}
   <div class="container">
     {% with messages = get_flashed_messages() %}
