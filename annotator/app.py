@@ -344,8 +344,7 @@ def import_fake_data():
             table_name='gutenberg.pride_and_prejudice_by_jane_austen',
             entity_id='paragraph%i' % i,
             problem=new_problem,
-            free_text=paragraph,
-            organization_id=None
+            free_text=paragraph
         ))
     db.session.commit()
     print('Inserted %i rows' % len(paragraphs))

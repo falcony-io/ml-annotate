@@ -1,3 +1,4 @@
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy_utils import (
     UUIDType
 )
@@ -20,11 +21,6 @@ class Dataset(db.Model):
         index=True
     )
 
-    organization_id = db.Column(
-        UUIDType(binary=False),
-        nullable=True
-    )
-
     problem_id = db.Column(
         UUIDType(binary=False),
         db.ForeignKey(Problem.id, ondelete='CASCADE'),
@@ -43,6 +39,8 @@ class Dataset(db.Model):
         db.Text(),
         nullable=False
     )
+
+    meta = db.Column(JSONB)
 
     probability = db.Column(
         db.Float(),
