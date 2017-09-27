@@ -41,9 +41,9 @@
             return sortedKeys.map(key => `
               <div class="meta">
                 <span class="meta-key">${encodeHTML(key)}</span>:
-                <span class="meta-value">${encodeHTML(data[key])}</span>
+                <span class="meta-value">${encodeHTML('' + data[key])}</span>
               </div>
-            `);
+            `).join('');
           }
         },
         {
