@@ -167,6 +167,7 @@ def dataset(problem_id):
             Dataset.free_text,
             Dataset.entity_id,
             Dataset.table_name,
+            Dataset.meta,
             Dataset.probability,
             Dataset.sort_value,
             db.select(

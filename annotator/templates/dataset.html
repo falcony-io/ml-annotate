@@ -9,6 +9,7 @@
         <th>Free text</th>
         <th>Entity id</th>
         <th>Table name</th>
+        <th>Meta</th>
         <th>Probability</th>
         <th>Sort value</th>
         <th>Labels</th>
@@ -23,6 +24,10 @@
     $('#data-table').DataTable({
       data: {{ data|tojson }},
       pageLength: 100,
+      dom: 'Bfrtip',
+      buttons: [
+          'colvis',
+      ],
       columns: [
         {},
         {},
@@ -30,7 +35,15 @@
         {},
         {
           render: function ( data, type, row ) {
-            return data !== null ? Math.round(data*1000)/1000 : '';
+            if (!data) return '';
+
+            var sortedKeys = Object.keys(data).sort();
+            return sortedKeys.map(key => `
+              <div class="meta">
+                <span class="meta-key">${encodeHTML(key)}</span>:
+                <span class="meta-value">${encodeHTML(data[key])}</span>
+              </div>
+            `);
           }
         },
         {
@@ -40,7 +53,12 @@
         },
         {
           render: function ( data, type, row ) {
-            return (data || []).map(x => {
+            return data !== null ? Math.round(data*1000)/1000 : '';
+          }
+        },
+        {
+          render: function ( data, type, row ) {
+            return (data || []).map(x => {
                 if (x === true) return '<span class="badge color-yes">true</span>';
                 if (x === false) return '<span class="badge color-no">false</span>';
                 if (x === null) return '<span class="badge color-skip">skip</span>';
@@ -57,6 +75,12 @@
   }
   #data-table td:nth-child(3) {
     font-size: 8px;
+  }
+  #data-table .meta {
+    font-size: 8px;
+  }
+  #data-table .meta-key {
+    font-weight: bold;
   }
   </style>
 {% endblock %}
