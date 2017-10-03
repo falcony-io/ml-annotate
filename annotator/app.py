@@ -226,7 +226,17 @@ def dataset(problem_id):
             db.select(
                 [db.func.array_agg(LabelEvent.label_matches)],
                 from_obj=LabelEvent
-            ).where(LabelEvent.data_id == Dataset.id).correlate(Dataset.__table__).label('label_matches')
+            ).where(LabelEvent.data_id == Dataset.id).correlate(Dataset.__table__).label('label_matches'),
+            (
+                db.select(
+                    [db.func.to_char(LabelEvent.created_at, db.text("'YYYY-MM-DD HH24:MI:SS'"))],
+                    from_obj=LabelEvent
+                ).where(LabelEvent.data_id == Dataset.id)
+                .order_by(LabelEvent.created_at.desc())
+                .limit(1)
+                .correlate(Dataset.__table__)
+                .label('label_created_at')
+            )
         )
         .filter(Dataset.problem_id == problem.id)
         .order_by(Dataset.id.asc())

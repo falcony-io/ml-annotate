@@ -1,4 +1,5 @@
 import axios from 'axios';
+import moment from 'moment';
 import React from 'react';
 import ReactDOM from 'react-dom';
 import ReactTable from 'react-table';
@@ -22,7 +23,8 @@ class Dataset extends React.Component {
         meta: x[4],
         probability: x[5],
         sortValue: x[6],
-        labels: x[7]
+        labels: x[7],
+        labelCreatedAt: x[8]
       })),
       selectedIds: new Set(),
       dynamicColumns,
@@ -114,7 +116,17 @@ class Dataset extends React.Component {
             </label>
           ),
           width: 32
-        }
+        },
+        {
+          Header: 'Label created',
+          accessor: 'labelCreatedAt',
+          filterable: false,
+          minWidth: 70,
+          Cell: row => (
+            <span title={row.value}>{row.value === null ? '' : moment(row.value).fromNow()}</span>
+          ),
+          show: false
+        },
       ]
     };
     for (let dynamicColumn of dynamicColumns) {
