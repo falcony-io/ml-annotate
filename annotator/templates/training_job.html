@@ -12,6 +12,9 @@
   {% endif %}
 
   {% if data %}
+    <div id="render-training-job"></div>
+    <script>annotate.renderPlot('render-training-job', {{ plot_data|tojson }});</script>
+
     <table id="data-table" class="table">
       <thead>
         <tr>
