@@ -156,6 +156,12 @@ class Dataset extends React.Component {
   markSelectedAs(value, e) {
     e.preventDefault();
 
+    if (this.state.selectedIds.size >= 50) {
+      if (!confirm(`This will change ${this.state.selectedIds.size} labels. Are you sure?`)) {
+        return;
+      }
+    }
+
     const problemId = window.location.pathname.split('/')[1];
     axios.post(`/${problemId}/batch_label`, {
       selectedIds: Array.from(this.state.selectedIds),
@@ -228,8 +234,8 @@ class Dataset extends React.Component {
                 <a href="#" className="color-yes" onClick={this.markSelectedAs.bind(this, true)}>Mark as true</a>
                 <a href="#" className="color-no" onClick={this.markSelectedAs.bind(this, false)}>Mark as false</a>
                 <a href="#" className="color-skip" onClick={this.markSelectedAs.bind(this, null)}>Mark as skip</a>
-                <a href="#" className="color-special" onClick={this.markSelectedAs.bind(this, 'undo')}>Undo</a>
-                <a href="#" className="color-special" onClick={this.clearSelection.bind(this)}>clear</a>
+                <a href="#" className="color-special" onClick={this.markSelectedAs.bind(this, 'undo')}>Remove labels</a>
+                <a href="#" className="color-special" onClick={this.clearSelection.bind(this)}>Select none</a>
               </div>
             ): (
               <a href="#" className="color-special" onClick={this.selectAll.bind(this)}>Select all</a>
