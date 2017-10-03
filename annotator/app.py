@@ -6,6 +6,7 @@ import sys
 from flask import (
     flash,
     Flask,
+    jsonify,
     redirect,
     render_template,
     request,
@@ -18,6 +19,8 @@ from flask_sslify import SSLify
 from sh import createdb, dropdb, psql
 from wtforms.fields import PasswordField, TextField
 from flask_wtf import Form
+from webassets.filter import get_filter, register_filter
+from webassets_webpack import Webpack
 
 from .extensions import db, login_manager
 from .models import Dataset, LabelEvent, Problem, TrainingJob, User
@@ -37,12 +40,28 @@ def shell_context():
 app = Flask(__name__)
 assets = Environment(app)
 assets.init_app(app)
-css = Bundle('styles/styles.css', output='gen/all.css')
+css = Bundle('styles/styles.scss', filters='libsass', output='gen/all.css')
 assets.register('css_all', css)
+
+register_filter(Webpack)
+react = get_filter('babel', presets='react-es2015')
+js = Bundle(
+    'js/index.js',
+    filters='webpack',
+    output='bundle.js',
+    depends='js/**.js'
+)
+assets.register('js_all', js)
+
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
     'DATABASE_URL',
     'postgres://localhost/annotator'
 )
+app.config['BABEL_BIN'] = '/Users/bansku/Documents/ai-trainer/node_modules/babel-cli/bin/babel.js'
+app.config['BROWSERIFY_BIN'] = 'node_modules/browserify/bin/cmd.js'
+app.config['WEBPACK_BIN'] = 'node_modules/.bin/webpack'
+app.config['WEBPACK_CONFIG'] = 'webpack.config.js'
+app.config['WEBPACK_TEMP'] = 'temp.js'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'development')
 app.shell_context_processor(shell_context)
@@ -129,6 +148,40 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for('login'))
+
+
+@app.route('/<uuid:problem_id>/batch_label', methods=['POST'])
+def batch_label(problem_id):
+    problem = Problem.query.get(problem_id)
+    assert_rights_to_problem(problem)
+    data = request.get_json()
+    ids = [str(x) for x in data['selectedIds']]
+    if not ids:
+        return jsonify(error='No ids selected');
+
+    labels = (
+        db.session.query(LabelEvent.id)
+        .outerjoin(LabelEvent.data).filter(
+            Dataset.id.in_(ids),
+            Dataset.problem_id == problem.id
+        )
+        .all()
+    )
+    if labels:
+        LabelEvent.query.filter(
+            LabelEvent.id.in_([x[0] for x in labels])
+        ).delete(synchronize_session='fetch')
+
+    if data['value'] != 'undo':
+        for dataset_id in ids:
+            db.session.add(LabelEvent(
+                label=problem.label,
+                label_matches=data['value'],
+                data_id=dataset_id
+            ))
+
+    db.session.commit()
+    return jsonify(status='ok', labels_removed=len(labels));
 
 
 @app.route('/<uuid:problem_id>/label_event')

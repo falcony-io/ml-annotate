@@ -6,3 +6,4 @@ htmlcov/
 .cache
 __pycache__
 .virtualenv
+node_modules

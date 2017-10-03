@@ -2,84 +2,16 @@
 {% block body %}
   <h3>Dataset</h3>
   <p style="margin-bottom: 40px;">Here is the data related to the problem. If you are running analysis on this data, you can use script to modify columns <strong>probability</strong> and <strong>sort_value</strong> of the data.</p>
-  <table id="data-table" class="table">
-    <thead>
-      <tr>
-        <th>Id</th>
-        <th>Free text</th>
-        <th>Entity id</th>
-        <th>Table name</th>
-        <th>Meta</th>
-        <th>Probability</th>
-        <th>Sort value</th>
-        <th>Labels</th>
-      </tr>
-    </thead>
-  </table>
-  <script>
-  $(function() {
-    function encodeHTML(s) {
-      return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
-    }
-    $('#data-table').DataTable({
-      data: {{ data|tojson }},
-      pageLength: 100,
-      dom: 'Bfrtip',
-      buttons: [
-          'colvis',
-      ],
-      columns: [
-        {},
-        {},
-        {},
-        {},
-        {
-          render: function ( data, type, row ) {
-            if (!data) return '';
-
-            var sortedKeys = Object.keys(data).sort();
-            return sortedKeys.map(key => `
-              <div class="meta">
-                <span class="meta-key">${encodeHTML(key)}</span>:
-                <span class="meta-value">${encodeHTML('' + data[key])}</span>
-              </div>
-            `).join('');
-          }
-        },
-        {
-          render: function ( data, type, row ) {
-            return data !== null ? Math.round(data*1000)/1000 : '';
-          }
-        },
-        {
-          render: function ( data, type, row ) {
-            return data !== null ? Math.round(data*1000)/1000 : '';
-          }
-        },
-        {
-          render: function ( data, type, row ) {
-            return (data || []).map(x => {
-                if (x === true) return '<span class="badge color-yes">true</span>';
-                if (x === false) return '<span class="badge color-no">false</span>';
-                if (x === null) return '<span class="badge color-skip">skip</span>';
-            }).join(' ');
-          }
-        },
-      ]
-    })
-  });
-  </script>
+  <div id="render-dataset"></div>
+  <script>annotate.renderDataset('render-dataset', {{ data|tojson }});</script>
   <style>
-  #data-table td:first-child {
+  #render-dataset {
+    margin-bottom: 30px;
+  }
+  .dataset-meta {
     font-size: 8px;
   }
-  #data-table td:nth-child(3) {
-    font-size: 8px;
-  }
-  #data-table .meta {
-    font-size: 8px;
-  }
-  #data-table .meta-key {
+  .dataset-meta-key {
     font-weight: bold;
   }
   </style>
