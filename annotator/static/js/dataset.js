@@ -261,7 +261,7 @@ class Dataset extends React.Component {
           defaultFilterMethod={(filter, row, column) => {
             const id = filter.pivotId || filter.id;
             const stringValue = typeof row[id] === 'object' ? JSON.stringify(row[id]) : String(row[id]);
-            return row[id] !== undefined ? stringValue.toLowerCase().includes(filter.value.toLowerCase()) : true;
+            return row[id] !== undefined ? stringValue.toLowerCase().includes(filter.value.toLowerCase()) : false;
           }}
           resizable={true}
           data={data}
