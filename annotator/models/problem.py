@@ -26,7 +26,7 @@ class Problem(db.Model):
         primary_key=True
     )
 
-    label = db.Column(
+    name = db.Column(
         db.Unicode(255),
         nullable=False,
     )
@@ -50,4 +50,4 @@ class Problem(db.Model):
         return select([func.count(Dataset.id)]).where(Dataset.problem_id == cls.id).label('dataset_count')
 
     def __repr__(self):
-        return '<Problem label=%r>' % self.label
+        return '<Problem name=%r>' % self.name

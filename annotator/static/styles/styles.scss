@@ -54,6 +54,35 @@ body {
 .buttons .button-skip, .color-skip {
   background-color: #7f8c8d;
 }
+.multi-label {
+  .table th {
+    font-size: 25px;
+  }
+  .table td {
+    padding: 10px 0px;
+  }
+  .label {
+    padding: 10px;
+    font-size: 14px;
+    display: inline-block;
+    input {
+      margin-right: 3px;
+      position: relative;
+      top: -1px;
+    }
+  }
+  .button {
+    background-color: #95a5a6;
+    width: 100%;
+    text-align: center;
+    color: white;
+    font-size: 30px;
+    position: relative;
+    height: 102px;
+    border: 0;
+    border-radius: 10px;
+  }
+}
 
 .navbar-brand span {
   font-size: 16px;

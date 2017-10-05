@@ -23,7 +23,7 @@ from webassets.filter import get_filter, register_filter
 from webassets_webpack import Webpack
 
 from .extensions import db, login_manager
-from .models import Dataset, LabelEvent, Problem, TrainingJob, User
+from .models import Dataset, DatasetLabelProbability, LabelEvent, Problem, ProblemLabel, TrainingJob, User
 
 
 def shell_context():
@@ -163,7 +163,8 @@ def batch_label(problem_id):
         db.session.query(LabelEvent.id)
         .outerjoin(LabelEvent.data).filter(
             Dataset.id.in_(ids),
-            Dataset.problem_id == problem.id
+            Dataset.problem_id == problem.id,
+            LabelEvent.label_id == data['label']
         )
         .all()
     )
@@ -175,7 +176,7 @@ def batch_label(problem_id):
     if data['value'] != 'undo':
         for dataset_id in ids:
             db.session.add(LabelEvent(
-                label=problem.label,
+                label_id=data['label'],
                 label_matches=data['value'],
                 data_id=dataset_id
             ))
@@ -184,36 +185,36 @@ def batch_label(problem_id):
     return jsonify(status='ok', labels_removed=len(labels));
 
 
-@app.route('/<uuid:problem_id>/label_event')
-@login_required
-def label_event(problem_id):
-    problem = Problem.query.get(problem_id)
-    assert_rights_to_problem(problem)
-    data = (
-        db.session.query(
-            LabelEvent.id,
-            LabelEvent.label_matches,
-            Dataset.free_text,
-            Dataset.probability,
-        )
-        .outerjoin(LabelEvent.data)
-        .filter(Dataset.problem_id == problem.id)
-        .order_by(LabelEvent.created_at.desc())
-        .all()
-    )
-    return render_template(
-        'label_event.html',
-        data=data,
-        problem=problem
-    )
-
-
 @app.route('/<uuid:problem_id>/dataset')
 @login_required
 def dataset(problem_id):
     problem = Problem.query.get(problem_id)
-    print(problem)
     assert_rights_to_problem(problem)
+
+    probabilities = db.select(
+        [db.func.json_object_agg(
+            DatasetLabelProbability.label_id,
+            DatasetLabelProbability.probability
+        )],
+        from_obj=DatasetLabelProbability
+    ).where(DatasetLabelProbability.data_id == Dataset.id).correlate(Dataset.__table__).label('dataset_probabilities')
+
+    label_created_at = (
+        db.select(
+            [db.func.to_char(LabelEvent.created_at, db.text("'YYYY-MM-DD HH24:MI:SS'"))],
+            from_obj=LabelEvent
+        ).where(LabelEvent.data_id == Dataset.id)
+        .order_by(LabelEvent.created_at.desc())
+        .limit(1)
+        .correlate(Dataset.__table__)
+        .label('label_created_at')
+    )
+
+    label_matches = db.select(
+        [db.func.json_agg(db.func.json_build_array(LabelEvent.label_id, LabelEvent.label_matches))],
+        from_obj=LabelEvent
+    ).where(LabelEvent.data_id == Dataset.id).correlate(Dataset.__table__).label('label_matches')
+
     data = (
         db.session.query(
             Dataset.id,
@@ -221,31 +222,26 @@ def dataset(problem_id):
             Dataset.entity_id,
             Dataset.table_name,
             Dataset.meta,
-            Dataset.probability,
+            probabilities,
             Dataset.sort_value,
-            db.select(
-                [db.func.array_agg(LabelEvent.label_matches)],
-                from_obj=LabelEvent
-            ).where(LabelEvent.data_id == Dataset.id).correlate(Dataset.__table__).label('label_matches'),
-            (
-                db.select(
-                    [db.func.to_char(LabelEvent.created_at, db.text("'YYYY-MM-DD HH24:MI:SS'"))],
-                    from_obj=LabelEvent
-                ).where(LabelEvent.data_id == Dataset.id)
-                .order_by(LabelEvent.created_at.desc())
-                .limit(1)
-                .correlate(Dataset.__table__)
-                .label('label_created_at')
-            )
+            label_matches,
+            label_created_at
         )
         .filter(Dataset.problem_id == problem.id)
         .order_by(Dataset.id.asc())
         .all()
     )
+    problem_labels = db.session.query(
+        ProblemLabel.id,
+        ProblemLabel.label
+    ).filter(ProblemLabel.problem == problem).all()
+
+
     return render_template(
         'dataset.html',
         data=data,
-        problem=problem
+        problem=problem,
+        problem_labels=problem_labels
     )
 
 
@@ -291,23 +287,28 @@ def train(problem_id):
         return render_template('train_no_data.html', problem=problem)
 
     if request.method == 'POST':
-        if LabelEvent.query.filter_by(
-            label=request.form['label'],
-            data=Dataset.query.get(request.form['data_id'])
-        ).count():
-            flash('This item has already been labeled...skipping?')
-        else:
-            label_event = LabelEvent(
-                label=request.form['label'],
-                label_matches={
-                    'yes': True,
-                    'no': False,
-                    'skip': None
-                }[request.form['label_matches']],
-                data=Dataset.query.get(request.form['data_id'])
-            )
-            db.session.add(label_event)
-            db.session.commit()
+        for key, value in request.form.items():
+            if key.startswith('label_'):
+                label_id = key.split('label_')[1]
+                label = ProblemLabel.query.get(label_id)
+
+                if LabelEvent.query.filter_by(
+                    label=label,
+                    data=Dataset.query.get(request.form['data_id'])
+                ).count():
+                    flash('This item has already been labeled...skipping?')
+                else:
+                    label_event = LabelEvent(
+                        label=label,
+                        label_matches={
+                            'yes': True,
+                            'no': False,
+                            'skip': None
+                        }[value],
+                        data=Dataset.query.get(request.form['data_id'])
+                    )
+                    db.session.add(label_event)
+                    db.session.commit()
 
     sample = Dataset.query.filter(
         ~Dataset.label_events.any(),
@@ -324,7 +325,6 @@ def train(problem_id):
     return render_template(
         'train.html',
         sample=sample,
-        label=problem.label,
         event_log=LabelEvent.query.join(
             Dataset
         ).filter(

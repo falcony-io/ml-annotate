@@ -1,13 +1,11 @@
-from sqlalchemy_utils import (
-    UUIDType
-)
+from sqlalchemy_utils import UUIDType
 
 from annotator.extensions import db
 from annotator.models import Dataset
 
 
-class LabelEvent(db.Model):
-    __tablename__ = 'label_event'
+class DatasetLabelProbability(db.Model):
+    __tablename__ = 'dataset_label_probability'
 
     id = db.Column(
         UUIDType(binary=False),
@@ -22,7 +20,7 @@ class LabelEvent(db.Model):
         index=True,
     )
 
-    data = db.relationship(Dataset, backref='label_events')
+    data = db.relationship(Dataset, backref='probabilities')
 
     label_id = db.Column(
         UUIDType(binary=False),
@@ -35,16 +33,17 @@ class LabelEvent(db.Model):
         'ProblemLabel'
     )
 
-    label_matches = db.Column(
-        db.Boolean(),
+    probability = db.Column(
+        db.Float(),
         nullable=True
     )
 
-    created_at = db.Column(
-        db.DateTime,
-        server_default=db.func.now(),
-        nullable=False
+    __table_args__ = (
+        db.CheckConstraint(
+            (0 <= probability) & (probability <= 1),
+            name='chk_dataset_probability'
+        ),
     )
 
     def __repr__(self):
-        return '<LabelEvent label=%r>' % self.label
+        return '<Problemlabel label=%r>' % (self.label,)

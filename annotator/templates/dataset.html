@@ -3,10 +3,19 @@
   <h3>Dataset</h3>
   <p style="margin-bottom: 40px;">Here is the data related to the problem. If you are running analysis on this data, you can use script to modify columns <strong>probability</strong> and <strong>sort_value</strong> of the data.</p>
   <div id="render-dataset"></div>
-  <script>annotate.renderDataset('render-dataset', {{ data|tojson }});</script>
+  <script>
+    annotate.renderDataset(
+        'render-dataset',
+      {{ data|tojson }},
+      {{ problem_labels|tojson }}
+    );
+  </script>
   <style>
   #render-dataset {
     margin-bottom: 30px;
+  }
+  #render-dataset .badge {
+    margin-right: 5px;
   }
   .dataset-meta {
     font-size: 8px;

@@ -42,11 +42,6 @@ class Dataset(db.Model):
 
     meta = db.Column(JSONB)
 
-    probability = db.Column(
-        db.Float(),
-        nullable=True
-    )
-
     sort_value = db.Column(
         db.Float(),
         nullable=True
@@ -57,10 +52,6 @@ class Dataset(db.Model):
             'table_name',
             'entity_id',
             name='uq_dataset_table_name_entity_id'
-        ),
-        db.CheckConstraint(
-            (0 <= probability) & (probability <= 1),
-            name='chk_dataset_probability'
         ),
     )
 

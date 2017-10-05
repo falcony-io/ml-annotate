@@ -1,16 +1,18 @@
 import axios from 'axios';
 import moment from 'moment';
+import sortedPairs from 'lodash-sorted-pairs'
 import React from 'react';
 import ReactDOM from 'react-dom';
 import ReactTable from 'react-table';
 import _ from 'lodash';
 
 
+
 class Dataset extends React.Component {
   constructor(props) {
     super(props);
 
-    const dynamicColumns = _.uniq(_.flatten(
+    const dynamicMetaColumns = _.uniq(_.flatten(
       this.props.data.map(x => x[4] || {}).map(Object.keys)
     ));
 
@@ -23,11 +25,12 @@ class Dataset extends React.Component {
         meta: x[4],
         probability: x[5],
         sortValue: x[6],
-        labels: x[7],
+        labels: x[7] || [],
         labelCreatedAt: x[8]
       })),
       selectedIds: new Set(),
-      dynamicColumns,
+      selectedLabel: sortedPairs(this.props.problemLabels)[0][0],
+      dynamicMetaColumns,
       columns: [
         { Header: 'ID', accessor: 'id', show: false },
         {
@@ -55,11 +58,11 @@ class Dataset extends React.Component {
           },
           show: false
         },
-        {
-          Header: 'Probability',
-          accessor: 'probability',
-          Cell: row => <span>{Math.round(row.value*1000)/10} %</span>
-        },
+        // {
+        //   Header: 'Probability',
+        //   accessor: 'probability',
+        //   Cell: row => <span>{JSON.stringify(row.value)}{Math.round(row.value*1000)/10} %</span>
+        // },
         { Header: 'Sort value', accessor: 'sortValue', show: false },
         {
           Header: 'Labels',
@@ -68,28 +71,31 @@ class Dataset extends React.Component {
           Cell: row => (
             <div>
               {row.value === null ? <span className="badge-no-labels">no labels</span>: ''}
-              {(row.value || []).map((x, index) => {
-                if (x === true) return <span key={index} className="badge color-yes">true</span>;
-                if (x === false) return <span key={index} className="badge color-no">false</span>;
-                if (x === null) return <span key={index} className="badge color-skip">skip</span>;
+              {(row.value || []).map(([key, value], index) => {
+                const label = this.props.problemLabels[key];
+
+                if (value === true) return <span key={index} className="badge color-yes" title="Labeled as true">✓ {label}</span>;
+                else if (value === false) return <span key={index} className="badge color-no" title="Labeled as false">× {label}</span>;
+                else if (value === null) return <span key={index} className="badge color-skip" title="Skipped label">? {label}</span>;
+                else return <span key={index} className="badge">Unknown {value}</span>;
               })}
             </div>
           ),
           filterMethod: (filter, row) => {
             if (filter.value === 'all') {
               return true;
-            }
-            if (filter.value === 'true') {
-              return row[filter.id] && row[filter.id].includes(true);
-            }
-            if (filter.value === 'false') {
-              return row[filter.id] && row[filter.id].includes(false);
-            }
-            if (filter.value === 'skip') {
-              return row[filter.id] && row[filter.id].includes(null);
-            }
-            if (filter.value === 'none') {
+            } else if (filter.value === 'none') {
               return row[filter.id] === null || !row[filter.id].length;
+            } else if (String(filter.value).includes(':')) {
+              const [key, value] = filter.value.split(':');
+              const expected = {
+                'true': true,
+                'false': false,
+                'skip': null
+              }[value];
+              return row[filter.id] && row[filter.id].some(
+                x => x[0] === key && x[1] == expected
+              );
             }
           },
           Filter: ({ filter, onChange }) => (
@@ -99,9 +105,15 @@ class Dataset extends React.Component {
               value={filter ? filter.value : "all"}
             >
               <option value="all">All</option>
-              <option value="true">True</option>
-              <option value="false">False</option>
-              <option value="skip">Skip</option>
+              {
+                sortedPairs(this.props.problemLabels).map(([id, label]) => {
+                  return [
+                    <option key="A" value={id + ':true'}>{label}: True</option>,
+                    <option key="B" value={id + ':false'}>{label}: False</option>,
+                    <option key="C" value={id + ':skip'}>{label}: Skip</option>,
+                  ];
+                })
+              }
               <option value="none">None</option>
             </select>
           )
@@ -129,11 +141,20 @@ class Dataset extends React.Component {
         },
       ]
     };
-    for (let dynamicColumn of dynamicColumns) {
+    for (let dynamicColumn of dynamicMetaColumns) {
       this.state.columns.push({
         Header: `meta: ${dynamicColumn}`,
         accessor: `meta.${dynamicColumn}`,
         show: false
+      })
+    }
+    for (let label of Object.entries(this.props.problemLabels)) {
+      this.state.columns.push({
+        id: `x.probability.${label[0]}`,
+        Header: `probability: ${label[1]}`,
+        accessor: x => x.probability[label[0]],
+        show: false,
+        Cell: row => <span>{Math.round(row.value*1000)/10} %</span>
       })
     }
     for (let column of this.state.columns) {
@@ -162,8 +183,17 @@ class Dataset extends React.Component {
       }
     }
 
+    function changeLabel(previous, labelId, newValue) {
+      const arr = previous.filter(([key, value]) => key !== labelId);
+      if (newValue !== undefined) {
+        arr.push([labelId, newValue]);
+      }
+      return arr;
+    }
+
     const problemId = window.location.pathname.split('/')[1];
     axios.post(`/${problemId}/batch_label`, {
+      label: this.state.selectedLabel,
       selectedIds: Array.from(this.state.selectedIds),
       value: value
     })
@@ -175,9 +205,9 @@ class Dataset extends React.Component {
         if (this.state.selectedIds.has(item.id)) {
           const clonedItem = Object.assign({}, item);
           if (value === 'undo') {
-            clonedItem.labels = null;
+            clonedItem.labels = changeLabel(clonedItem.labels, this.state.selectedLabel);
           } else {
-            clonedItem.labels = [value];
+            clonedItem.labels = changeLabel(clonedItem.labels, this.state.selectedLabel, value);
           }
           newData[i] = clonedItem;
         }
@@ -222,6 +252,12 @@ class Dataset extends React.Component {
     });
   }
 
+  changeSelectedLabel(e) {
+    this.setState({
+      selectedLabel: e.target.value
+    });
+  }
+
   render() {
     const data = this.state.data;
 
@@ -229,15 +265,22 @@ class Dataset extends React.Component {
       <div>
           <div className="data-batch-label">
             <div className="data-batch-label-selected">{this.state.selectedIds.size} selected</div>
-            {this.state.selectedIds.size > 0 ? (
-              <div>
-                <a href="#" className="color-yes" onClick={this.markSelectedAs.bind(this, true)}>Mark as true</a>
-                <a href="#" className="color-no" onClick={this.markSelectedAs.bind(this, false)}>Mark as false</a>
-                <a href="#" className="color-skip" onClick={this.markSelectedAs.bind(this, null)}>Mark as skip</a>
-                <a href="#" className="color-special" onClick={this.markSelectedAs.bind(this, 'undo')}>Remove labels</a>
-                <a href="#" className="color-special" onClick={this.clearSelection.bind(this)}>Select none</a>
-              </div>
-            ): (
+            {this.state.selectedIds.size > 0 ? [
+                <div key="a">
+                  <select value={this.state.selectedLabel} onChange={this.changeSelectedLabel.bind(this)}>
+                    {sortedPairs(this.props.problemLabels).map(([key, name]) => {
+                      return <option key={key} value={key}>{name}</option>;
+                    })}
+                  </select>
+                </div>,
+                <div key="b">
+                  <a href="#" className="color-yes" onClick={this.markSelectedAs.bind(this, true)}>Mark as true</a>
+                  <a href="#" className="color-no" onClick={this.markSelectedAs.bind(this, false)}>Mark as false</a>
+                  <a href="#" className="color-skip" onClick={this.markSelectedAs.bind(this, null)}>Mark as skip</a>
+                  <a href="#" className="color-special" onClick={this.markSelectedAs.bind(this, 'undo')}>Remove labels</a>
+                  <a href="#" className="color-special" onClick={this.clearSelection.bind(this)}>Select none</a>
+                </div>
+            ]: (
               <a href="#" className="color-special" onClick={this.selectAll.bind(this)}>Select all</a>
             )}
           </div>
@@ -281,8 +324,8 @@ class Dataset extends React.Component {
   }
 }
 
-function renderDataset(elementID, data) {
-  ReactDOM.render(<Dataset data={data} />, document.getElementById(elementID));
+function renderDataset(elementID, data, problemLabels) {
+  ReactDOM.render(<Dataset data={data} problemLabels={_.fromPairs(problemLabels)} />, document.getElementById(elementID));
 }
 
 export default renderDataset;

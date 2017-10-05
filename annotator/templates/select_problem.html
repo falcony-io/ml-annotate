@@ -6,14 +6,14 @@
     <table class="table" style="margin-top: 20px;">
       <thead>
         <tr>
-          <th>Label</th>
+          <th>Name</th>
           <th>Dataset size</th>
         </tr>
       </thead>
       <tbody>
         {% for problem in problems %}
           <tr>
-            <td><a href="{{ url_for('train', problem_id=problem.id) }}">{{ problem.label }}</a></td>
+            <td><a href="{{ url_for('train', problem_id=problem.id) }}">{{ problem.name }}</a></td>
             <td>{{ problem.dataset_count }}</td>
           </tr>
         {% endfor %}

@@ -28,33 +28,55 @@
       </tr>
       <tr>
         <th>Probability</th>
-        <td>{% if sample.probability is none %}n/a{% else %}{{ sample.probability|round(2) }}{% endif %}</td>
+        <td>
+          {% for probability in sample.probabilities %}
+            {{ probability.label.label }}: {% if probability.probability is none %}n/a{% else %}{{ probability.probability|round(2) }}{% endif %}
+          {% endfor %}
+        </td>
       </tr>
       <tr>
         <td colspan="2" style="font-size: 20px; padding: 10px;"><div style="min-height: 200px;">{{ sample.free_text }}</div></td>
       </tr>
     </table>
-    <div class="buttons">
-      <form action="#" method="POST">
-        <input type="hidden" name="label" value="{{ label }}" />
-        <input type="hidden" name="label_matches" value="yes" />
-        <input type="hidden" name="data_id" value="{{ sample.id }}" />
-        <button type="submit" id="button1" class="button button-yes"><span class="help">This item should be labeled as {{ label }}</span>Yes<span class="keybinding">1</span></button>
-      </form>
-      <form action="#" method="POST">
-        <input type="hidden" name="label" value="{{ label }}" />
-        <input type="hidden" name="label_matches" value="no" />
-        <input type="hidden" name="data_id" value="{{ sample.id }}" />
-        <button type="submit" id="button2" class="button button-no"><span class="help">This item should <strong>not</strong> be labeled as {{ label }}</span>No<span class="keybinding">2</span></button>
-      </form>
-      <form action="#" method="POST">
-        <input type="hidden" name="label" value="{{ label }}" />
-        <input type="hidden" name="label_matches" value="skip" />
-        <input type="hidden" name="data_id" value="{{ sample.id }}" />
-        <button type="submit" id="button3" class="button button-skip"><span class="help">Skip this item and do not ask again</span>Skip<span class="keybinding">3</span></button>
-      </form>
-    </div>
-    <p style="padding-left: 15px; color: gray;"><strong>Tip:</strong> You may use keybindings 1, 2 and 3 to label data faster</p>
+    {% if problem.labels|length == 1 %}
+      <div class="buttons">
+        <form action="#" method="POST">
+          <input type="hidden" name="label_{{ problem.labels[0].id }}" value="yes" />
+          <input type="hidden" name="data_id" value="{{ sample.id }}" />
+          <button type="submit" id="button1" class="button button-yes"><span class="help">This item should be labeled as {{ problem.labels[0].label }}</span>Yes<span class="keybinding">1</span></button>
+        </form>
+        <form action="#" method="POST">
+          <input type="hidden" name="label_{{ problem.labels[0].id }}" value="no" />
+          <input type="hidden" name="data_id" value="{{ sample.id }}" />
+          <button type="submit" id="button2" class="button button-no"><span class="help">This item should <strong>not</strong> be labeled as {{ problem.labels[0].label }}</span>No<span class="keybinding">2</span></button>
+        </form>
+        <form action="#" method="POST">
+          <input type="hidden" name="label_{{ problem.labels[0].id }}" value="skip" />
+          <input type="hidden" name="data_id" value="{{ sample.id }}" />
+          <button type="submit" id="button3" class="button button-skip"><span class="help">Skip this item and do not ask again</span>Skip<span class="keybinding">3</span></button>
+        </form>
+      </div>
+      <p style="padding-left: 15px; color: gray;"><strong>Tip:</strong> You may use keybindings 1, 2 and 3 to label data faster</p>
+    {% else %}
+      <div class="multi-label">
+        <form action="#" method="POST">
+          <input type="hidden" name="data_id" value="{{ sample.id }}" />
+          <table class="table" style="margin-top: 30px;">
+            {% for label in problem.labels %}
+              <tr>
+                <th>{{ label.label }}</th>
+                <td><label class="label color-yes"><input type="radio" name="label_{{ label.id }}" value="yes"> Yes</label></td>
+                <td><label class="label color-no"><input type="radio" name="label_{{ label.id }}" value="no"> No</label></td>
+                <td><label class="label color-skip"><input type="radio" name="label_{{ label.id }}" value="skip"> Skip</label></td>
+              </tr>
+            {% endfor %}
+            <tr>
+              <td colspan="4"><button type="submit" class="button">Label</button></td>
+            </tr>
+          </table>
+        </form>
+      </div>
+    {% endif %}
   {% else %}
     <p>No sample left</p>
   {% endif %}
@@ -75,14 +97,20 @@
           <td>{{ event.data.free_text }}</td>
           <td>
             {% if event.label_matches == True %}
-              <span class="badge color-yes">Labeled as {{ event.label }}</span>
+              <span class="badge color-yes" title="Labeled as true">✓ {{ event.label.label }}</span>
             {% elif event.label_matches == False %}
-              <span class="badge color-no">Is not {{ event.label }}</span>
+              <span class="badge color-no" title="Labeled as false">× {{ event.label.label }}</span>
             {% else %}
-              <span class="badge color-skip">Skipped {{ event.label }}</span>
+              <span class="badge color-skip" title="Skipped labeling">? {{ event.label.label }}</span>
             {% endif %}
           </td>
-          <td>{% if event.data.probability is none %}n/a{% else %}{{ event.data.probability|round(2) }}{% endif %}</td>
+          <td>
+            {% for probability in event.data.probabilities %}
+              {% if probability.label == event.label %}
+                {% if probability.probability is none %}n/a{% else %}{{ (probability.probability*100)|round(2) }} %{% endif %}
+              {% endif %}
+            {% endfor %}
+          </td>
           <td>
             <form action="{{ url_for('delete_label_event', id=event.id, problem_id=problem.id) }}" method="POST">
               <button type="submit" class="btn btn-default btn-small">Undo</button>
