@@ -112,9 +112,28 @@
             {% endfor %}
           </td>
           <td>
-            <form action="{{ url_for('delete_label_event', id=event.id, problem_id=problem.id) }}" method="POST">
-              <button type="submit" class="btn btn-default btn-small">Undo</button>
-            </form>
+            <div class="dropdown">
+              <button class="btn btn-default btn-small dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                Undo
+                <span class="caret"></span>
+              </button>
+              <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
+                <li><form action="{{ url_for('delete_label_event', id=event.id, problem_id=problem.id) }}" method="POST">
+                  <input type="hidden" name="value" value="true" />
+                  <button type="submit">Mark as true</button></form></li>
+                <li><form action="{{ url_for('delete_label_event', id=event.id, problem_id=problem.id) }}" method="POST">
+                  <input type="hidden" name="value" value="false" />
+                  <button type="submit">Mark as false</button>
+                </form></li>
+                <li><form action="{{ url_for('delete_label_event', id=event.id, problem_id=problem.id) }}" method="POST">
+                  <input type="hidden" name="value" value="skip" />
+                  <button type="submit">Mark as skip</button>
+                </form></li>
+                <li><form action="{{ url_for('delete_label_event', id=event.id, problem_id=problem.id) }}" method="POST">
+                  <button type="submit">Remove label</button>
+                </form></li>
+              </ul>
+            </div>
           </td>
         </tr>
       {% endfor %}

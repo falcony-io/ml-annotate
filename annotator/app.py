@@ -348,10 +348,24 @@ def train(problem_id):
 @login_required
 def delete_label_event(problem_id, id):
     label_event = LabelEvent.query.get(id)
+    value = request.form.get('value')
     if label_event:
+        if value:
+            db.session.add(LabelEvent(
+                data=label_event.data,
+                label=label_event.label,
+                label_matches={
+                    'true': True,
+                    'false': False,
+                    'skip': None
+                }[value]
+            ))
         db.session.delete(label_event)
         db.session.commit()
-        flash('Label event removed.')
+        if value:
+            flash('Label event replaced with %s' % value)
+        else:
+            flash('Label event removed.')
     return redirect(url_for('train', problem_id=problem_id))
 
 

@@ -1,3 +1,4 @@
+import bootstrap from 'bootstrap';
 import renderPlot from './plot';
 import renderDataset from './dataset';
 

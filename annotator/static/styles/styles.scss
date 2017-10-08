@@ -83,6 +83,15 @@ body {
     border-radius: 10px;
   }
 }
+.dropdown-menu button {
+  width: 100%;
+  border: 0;
+  background: none;
+  padding: 5px;
+  &:hover {
+    background-color: rgb(230, 230, 230);
+  }
+}
 
 .navbar-brand span {
   font-size: 16px;
