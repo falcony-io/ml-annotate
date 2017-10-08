@@ -58,6 +58,9 @@
       </div>
       <p style="padding-left: 15px; color: gray;"><strong>Tip:</strong> You may use keybindings 1, 2 and 3 to label data faster</p>
     {% else %}
+      <div id="react-multi-label"></div>
+      <script>annotate.renderMultiLabelSelector('react-multi-label', {{ problem_labels_arr | tojson }}, {{ sample.id|tojson }});</script>
+      {#
       <div class="multi-label">
         <form action="#" method="POST">
           <input type="hidden" name="data_id" value="{{ sample.id }}" />
@@ -76,6 +79,8 @@
           </table>
         </form>
       </div>
+      #}
+      <p style="padding-left: 15px; padding-top: 10px; color: gray;"><strong>Tip:</strong> You may use keybindings 1, 2 and 3 to label data faster</p>
     {% endif %}
   {% else %}
     <p>No sample left</p>

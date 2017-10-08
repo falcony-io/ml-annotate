@@ -340,7 +340,11 @@ def train(problem_id):
         ).order_by(
             TrainingJob.created_at.desc()
         ).limit(5),
-        problem=problem
+        problem=problem,
+        problem_labels_arr=[
+            dict(id=x.id, name=x.label)
+            for x in problem.labels
+        ]
     )
 
 
