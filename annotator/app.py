@@ -62,7 +62,9 @@ app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
 app.config['BABEL_BIN'] = '/Users/bansku/Documents/ai-trainer/node_modules/babel-cli/bin/babel.js'
 app.config['BROWSERIFY_BIN'] = 'node_modules/browserify/bin/cmd.js'
 app.config['WEBPACK_BIN'] = 'node_modules/.bin/webpack'
-app.config['WEBPACK_CONFIG'] = 'webpack.config.js'
+
+app.config['WEBPACK_CONFIG'] = 'webpack.config.js' if app.debug else 'webpack.production.js'
+
 app.config['WEBPACK_TEMP'] = 'temp.js'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'development')

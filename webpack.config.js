@@ -3,7 +3,7 @@ var path = require('path');
 var node_modules_dir = path.join(__dirname, 'node_modules');
 
 module.exports = {
-    devtool: 'inline-cheap-source-map',
+    devtool: 'inline-cheap-module-source-map',
     entry: path.resolve(__dirname, 'annotator/static/js/index.js'),
     module: {
         rules: [
@@ -21,10 +21,10 @@ module.exports = {
         ]
     },
     plugins: [
-        // build optimization plugins
-        new webpack.optimize.UglifyJsPlugin({
-          compress: false,
-          mangle: false,
-        }),
+        new webpack.ProvidePlugin({
+          jQuery: 'jquery',
+          $: 'jquery',
+          jquery: 'jquery'
+        })
     ],
 }
