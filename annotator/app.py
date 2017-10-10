@@ -1,7 +1,9 @@
 import os
 
 import click
+import os
 import requests
+import shutil
 import sys
 from flask import (
     flash,
@@ -88,6 +90,22 @@ def assert_rights_to_problem(problem):
     if not current_user.can_access_problem(problem):
         print(current_user, problem, current_user.can_access_problem(problem))
         abort(403)
+
+
+@app.before_first_request
+def copy_bootstrap_fonts():
+    files = [
+        'glyphicons-halflings-regular.eot',
+        'glyphicons-halflings-regular.ttf',
+        'glyphicons-halflings-regular.woff2',
+        'glyphicons-halflings-regular.svg',
+        'glyphicons-halflings-regular.woff',
+    ]
+    for file in files:
+        shutil.copyfile(
+            'node_modules/bootstrap/fonts/%s' % file,
+            'annotator/static/fonts/%s' % file
+        )
 
 
 @app.errorhandler(404)
