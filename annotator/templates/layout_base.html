@@ -3,15 +3,9 @@
   <head>
     <title>ML-Annotate</title>
     <link rel="icon" href="/static/images/favicon.png">
-
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/mousetrap/1.6.1/mousetrap.js" integrity="sha256-hP0lGqjBtLc6QkS0oWrHNYJRyJKqJj8DgJy7axC1b7Q=" crossorigin="anonymous"></script>
-
-    <script src="/static/js/main.js"></script>
-
     {% assets "js_all" %}
       <script type="text/javascript" src="{{ ASSET_URL }}"></script>
     {%- endassets %}
-
     {% assets "css_all" %}
         <link href="{{ ASSET_URL }}" rel="stylesheet">
     {% endassets %}

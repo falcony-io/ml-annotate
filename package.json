@@ -17,6 +17,7 @@
     "lodash": "^4.17.4",
     "lodash-sorted-pairs": "^1.0.2",
     "moment": "^2.18.1",
+    "mousetrap": "^1.6.1",
     "plotly.js": "^1.30.1",
     "react": "^16.0.0",
     "react-dom": "^16.0.0",
