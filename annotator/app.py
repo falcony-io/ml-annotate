@@ -40,6 +40,10 @@ def shell_context():
 
 
 app = Flask(__name__)
+
+if not app.debug:
+    app.config['ASSETS_DEBUG'] = False
+
 assets = Environment(app)
 assets.init_app(app)
 css = Bundle('styles/styles.scss', filters='libsass', output='gen/all.css')
@@ -68,6 +72,7 @@ app.config['WEBPACK_CONFIG'] = 'webpack.config.js' if app.debug else 'webpack.pr
 app.config['WEBPACK_TEMP'] = 'temp.js'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'development')
+
 app.shell_context_processor(shell_context)
 sslify = SSLify(app)
 db.init_app(app)
