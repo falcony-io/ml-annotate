@@ -26,15 +26,5 @@ module.exports = {
           compress: false,
           mangle: false,
         }),
-        new webpack.ProvidePlugin({
-          jQuery: 'jquery',
-          $: 'jquery',
-          jquery: 'jquery'
-        })
     ],
-    // resolve: {
-    //     alias: {
-    //         jquery: "jquery/src/jquery"
-    //     }
-    // }
 }
