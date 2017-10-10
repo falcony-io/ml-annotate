@@ -1,5 +1,8 @@
+@import '../../../node_modules/bootstrap/dist/css/bootstrap';
+@import '../../../node_modules/bootstrap/dist/css/bootstrap-theme';
 @import '../../../node_modules/highlight.js/styles/monokai-sublime';
 @import '../../../node_modules/react-table/react-table';
+@import './fonts';
 
 body {
   font-family: 'Open Sans', sans-serif;
