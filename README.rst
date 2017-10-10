@@ -82,9 +82,9 @@ This guide expects that you are deploying ML-Annotate to Heroku.
     heroku addons:create heroku-postgresql:hobby-dev --app APP_NAME_HERE
     heroku config:set SECRET_KEY=$(python3 -c 'import binascii, os; print(binascii.hexlify(os.urandom(24)).decode())') --app APP_NAME_HERE
     heroku config:set FLASK_APP=annotator/app.py --app APP_NAME_HERE
-    heroku buildpacks:add --index 1 heroku/python --app APP_NAME_HERE
-    heroku buildpacks:add --index 2 heroku/nodejs --app APP_NAME_HERE
-    heroku buildpacks:add --index 3 https://github.com/philippkueng/heroku-buildpack-sassc.git --app APP_NAME_HERE
+    heroku buildpacks:add --index 1 heroku/nodejs --app APP_NAME_HERE
+    heroku buildpacks:add --index 2 https://github.com/philippkueng/heroku-buildpack-sassc.git --app APP_NAME_HERE
+    heroku buildpacks:add --index 3 heroku/python --app APP_NAME_HERE
 
 4. Then create the tables and create the user::
 
