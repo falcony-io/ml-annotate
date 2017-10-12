@@ -49,9 +49,10 @@ class Dataset(db.Model):
 
     __table_args__ = (
         db.UniqueConstraint(
+            'problem_id',
             'table_name',
             'entity_id',
-            name='uq_dataset_table_name_entity_id'
+            name='uq_dataset_problem_idtable_name_entity_id'
         ),
     )
 
