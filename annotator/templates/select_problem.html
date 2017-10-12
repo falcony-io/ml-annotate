@@ -50,7 +50,7 @@ db.session.commit()</code></pre>
               <span class="badge">superuser</span>
             {% else %}
               {% for user_problem in user.problems[0:3] %}
-                <a href="{{ url_for('train', problem_id=user_problem.problem.id) }}">{{ user_problem.problem.label }}</a>
+                <a href="{{ url_for('train', problem_id=user_problem.problem.id) }}">{{ user_problem.problem.name }}</a>
               {% endfor %}
               {% if user.problems|length > 3 %}
                 and more
