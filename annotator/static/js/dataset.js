@@ -23,9 +23,9 @@ class Dataset extends React.Component {
         entityId: x[2],
         tableName: x[3],
         meta: x[4],
-        probability: x[5],
+        probability: x[5] || {},
         sortValue: x[6],
-        labels: x[7] || [],
+        labels: x[7] || [],
         labelCreatedAt: x[8]
       })),
       selectedIds: new Set(),
@@ -58,11 +58,6 @@ class Dataset extends React.Component {
           },
           show: false
         },
-        // {
-        //   Header: 'Probability',
-        //   accessor: 'probability',
-        //   Cell: row => <span>{JSON.stringify(row.value)}{Math.round(row.value*1000)/10} %</span>
-        // },
         { Header: 'Sort value', accessor: 'sortValue', show: false },
         {
           Header: 'Labels',
@@ -154,7 +149,7 @@ class Dataset extends React.Component {
         Header: `probability: ${label[1]}`,
         accessor: x => x.probability[label[0]],
         show: false,
-        Cell: row => <span>{Math.round(row.value*1000)/10} %</span>
+        Cell: row => <span>{row.value === undefined ? 'n/a' : Math.round(row.value*1000)/10} %</span>
       })
     }
     for (let column of this.state.columns) {
