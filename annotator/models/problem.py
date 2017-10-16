@@ -37,6 +37,17 @@ class Problem(db.Model):
         nullable=False
     )
 
+    classification_type = db.Column(
+        db.Enum(
+            'binary',
+            'multi-label',
+            'multi-class',
+            name='classification_type_enum'
+        ),
+        default='binary',
+        server_default='binary'
+    )
+
     @hybrid_property
     def dataset_count(self):
         from annotator.models import Dataset
