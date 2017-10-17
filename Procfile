@@ -1,2 +1,2 @@
 release: alembic upgrade head
-web: gunicorn annotator:app --log-file -
+web: newrelic-admin run-program gunicorn annotator:app --log-file -
