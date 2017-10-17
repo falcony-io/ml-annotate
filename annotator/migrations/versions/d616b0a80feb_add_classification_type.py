@@ -9,7 +9,6 @@ from alembic import op
 from sqlalchemy.dialects import postgresql
 
 
-
 def upgrade():
     classification_type_enum = postgresql.ENUM('binary', 'multi-label', 'multi-class', name='classification_type_enum')
     classification_type_enum.create(op.get_bind())

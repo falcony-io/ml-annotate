@@ -8,7 +8,6 @@ import sqlalchemy as sa
 from alembic import op
 
 
-
 def upgrade():
     op.add_column('problem_label', sa.Column('order_index', sa.Integer(), nullable=True))
     op.execute('''

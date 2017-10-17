@@ -1,11 +1,9 @@
 import os
 import shutil
 import sys
-from flask import (
-    Flask,
-    render_template
-)
-from flask_assets import Environment, Bundle
+
+from flask import Flask, render_template
+from flask_assets import Bundle, Environment
 from flask_debugtoolbar import DebugToolbarExtension
 from flask_sslify import SSLify
 from webassets.filter import get_filter, register_filter

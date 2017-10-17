@@ -1,9 +1,10 @@
 import click
 import requests
 from sh import createdb, dropdb, psql
+
 from .app import app
 from .extensions import db
-from .models import User, Problem, ProblemLabel, Dataset
+from .models import Dataset, Problem, ProblemLabel, User
 
 
 @app.cli.command()

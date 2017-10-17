@@ -1,13 +1,13 @@
 """Add User and UserProblem"""
 
+import sqlalchemy as sa
 # revision identifiers, used by Alembic.
 import sqlalchemy_utils
+from alembic import op
 
 revision = '186247cd152e'
 down_revision = None
 
-import sqlalchemy as sa
-from alembic import op
 
 
 

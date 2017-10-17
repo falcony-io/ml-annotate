@@ -1,17 +1,11 @@
-
+from flask import jsonify, render_template, request
+from flask_login import login_required
 
 from annotator import app
-from flask import jsonify, request, render_template
 from annotator.extensions import db
-from annotator.models import (
-    DatasetLabelProbability,
-    Dataset,
-    LabelEvent,
-    ProblemLabel,
-    Problem
-)
+from annotator.models import (Dataset, DatasetLabelProbability, LabelEvent,
+                              Problem, ProblemLabel)
 from annotator.utils import assert_rights_to_problem
-from flask_login import login_required
 
 
 @app.route('/<uuid:problem_id>/multi_class_batch_label', methods=['POST'])

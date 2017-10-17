@@ -7,14 +7,15 @@ from alembic import context
 from sqlalchemy import create_engine, pool
 from sqlalchemy.exc import SAWarning
 
+from annotator import app
+from annotator.extensions import db
+from annotator.models import *
+
 ROOT = os.path.abspath(
     os.path.join(os.path.dirname(__file__), os.pardir, os.pardir)
 )
 sys.path.append(ROOT)
 
-from annotator import app
-from annotator.models import *
-from annotator.extensions import db
 
 # Don't raise exception on `SAWarning`s. For example, if Alembic does
 # not recognize some column types when autogenerating migrations,

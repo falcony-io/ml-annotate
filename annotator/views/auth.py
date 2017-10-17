@@ -1,15 +1,10 @@
-from annotator import app
+from flask import flash, redirect, render_template, request, url_for
 from flask_login import current_user, login_required, login_user, logout_user
-from wtforms.fields import PasswordField, TextField
-from flask import (
-    render_template,
-    url_for,
-    redirect,
-    request,
-    flash
-)
-from annotator.models import Problem, User
 from flask_wtf import Form
+from wtforms.fields import PasswordField, TextField
+
+from annotator import app
+from annotator.models import Problem, User
 
 
 class LoginForm(Form):

@@ -1,10 +1,8 @@
 from sqlalchemy.dialects.postgresql import JSONB
-from sqlalchemy_utils import (
-    UUIDType
-)
+from sqlalchemy_utils import UUIDType
 
-from annotator.models.problem import Problem
 from annotator.extensions import db
+from annotator.models.problem import Problem
 
 
 class Dataset(db.Model):

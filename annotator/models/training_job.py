@@ -1,9 +1,7 @@
-from sqlalchemy_utils import (
-    UUIDType
-)
+from sqlalchemy_utils import UUIDType
 
-from annotator.models.problem import Problem
 from annotator.extensions import db
+from annotator.models.problem import Problem
 
 
 class TrainingJob(db.Model):

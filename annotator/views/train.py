@@ -1,10 +1,12 @@
-from annotator.app import app
-from annotator.utils import assert_rights_to_problem
-from flask_login import login_required
-from annotator.models import Dataset, Problem, ProblemLabel, LabelEvent
-from annotator.extensions import db
-from flask import flash, request, render_template
 from itertools import groupby
+
+from flask import flash, render_template, request
+from flask_login import login_required
+
+from annotator.app import app
+from annotator.extensions import db
+from annotator.models import Dataset, LabelEvent, Problem, ProblemLabel
+from annotator.utils import assert_rights_to_problem
 
 
 def get_event_log(problem):

@@ -2,9 +2,9 @@ from flask import render_template
 from flask_login import login_required
 
 from annotator import app
-from annotator.utils import assert_rights_to_problem
 from annotator.extensions import db
 from annotator.models import Problem, TrainingJob
+from annotator.utils import assert_rights_to_problem
 
 
 @app.route('/<uuid:problem_id>/training_job')

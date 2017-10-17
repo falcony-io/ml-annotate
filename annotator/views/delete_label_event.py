@@ -1,9 +1,9 @@
-from flask import request, flash, redirect, url_for
+from flask import flash, redirect, request, url_for
 from flask_login import login_required
 
 from annotator import app
 from annotator.extensions import db
-from annotator.models import Dataset, ProblemLabel, LabelEvent
+from annotator.models import Dataset, LabelEvent, ProblemLabel
 from annotator.utils import assert_rights_to_problem
 
 

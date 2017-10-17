@@ -1,9 +1,6 @@
 from flask_login import UserMixin
 from sqlalchemy.ext.hybrid import hybrid_method
-from sqlalchemy_utils import (
-    PasswordType,
-    UUIDType
-)
+from sqlalchemy_utils import PasswordType, UUIDType
 
 from annotator.extensions import db
 

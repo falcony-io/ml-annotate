@@ -1,11 +1,9 @@
 from flask_login import current_user
 from flask_sqlalchemy import BaseQuery
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import object_session
-from sqlalchemy_utils import (
-    UUIDType
-)
+from sqlalchemy_utils import UUIDType
 
 from annotator.extensions import db
 

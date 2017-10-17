@@ -8,7 +8,6 @@ import sqlalchemy as sa
 from alembic import op
 
 
-
 def upgrade():
     op.create_unique_constraint('uq_dataset_label_probability_data_id_label_id', 'dataset_label_probability', ['data_id', 'label_id'])
 
