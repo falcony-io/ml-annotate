@@ -50,6 +50,7 @@ def get_event_log(problem):
 def train_log(problem_id):
     problem = Problem.query.get(problem_id)
     assert_rights_to_problem(problem)
+
     labeled_data_count = Dataset.query.filter(
         Dataset.label_events.any(),
         Dataset.problem_id == problem.id

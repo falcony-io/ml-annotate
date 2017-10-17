@@ -15,7 +15,6 @@ class LoginForm(Form):
 @app.route('/')
 @login_required
 def index():
-    print(current_user)
     return render_template(
         'select_problem.html',
         problems=Problem.query.for_user(current_user).order_by(

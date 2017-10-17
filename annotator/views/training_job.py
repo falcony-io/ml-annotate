@@ -12,6 +12,7 @@ from annotator.utils import assert_rights_to_problem
 def training_job(problem_id):
     problem = Problem.query.get(problem_id)
     assert_rights_to_problem(problem)
+
     data = (
         db.session.query(
             TrainingJob.id,

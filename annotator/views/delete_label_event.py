@@ -41,6 +41,9 @@ def multi_class_delete_label_event(problem_id, data_id):
 @app.route('/<uuid:problem_id>/delete_label_event/<uuid:id>', methods=['POST'])
 @login_required
 def delete_label_event(problem_id, id):
+    problem = Problem.query.get(problem_id)
+    assert_rights_to_problem(problem)
+
     label_event = LabelEvent.query.get(id)
     value = request.form.get('value')
     if label_event:

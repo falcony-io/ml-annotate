@@ -12,6 +12,7 @@ from annotator.utils import assert_rights_to_problem
 def multi_class_batch_label(problem_id):
     problem = Problem.query.get(problem_id)
     assert_rights_to_problem(problem)
+
     data = request.get_json()
     ids = [str(x) for x in data['selectedIds']]
     if not ids:
@@ -46,6 +47,7 @@ def multi_class_batch_label(problem_id):
 def batch_label(problem_id):
     problem = Problem.query.get(problem_id)
     assert_rights_to_problem(problem)
+
     data = request.get_json()
     ids = [str(x) for x in data['selectedIds']]
     if not ids:
