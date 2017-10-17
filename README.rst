@@ -1,7 +1,7 @@
 ML-Annotate
 ===============
 
-You can use ML-Annotate to label text data for machine learning purposes. Only binary labels & text data is supported.
+You can use ML-Annotate to label text data for machine learning purposes. ML-Annotate supports binary, multi-label and multi-class labeling.
 
 .. image:: http://i.imgur.com/JMVU6Ym.png
 
@@ -50,18 +50,23 @@ Then you will have access to the application shell. Here's an example on how to 
     import requests
     request = requests.get('https://www.gutenberg.org/files/1342/1342-0.txt')
     text_contents = max(request.text.split('***'), key=lambda x: len(x))
-    paragraphs =  [
+    paragraphs = [
         x.strip() for x in text_contents.replace('\r', '').split('\n\n')
         if x.strip()
     ]
-    new_problem = Problem(label='Example')
+    new_problem = Problem(
+        name='Example',
+        labels=[ProblemLabel(label='Example', order_index=1)],
+        # supported types: binary, multi-label, multi-class
+        # add more labels if using other labels.
+        classification_type='binary'
+    )
     for i, paragraph in enumerate(paragraphs):
         db.session.add(Dataset(
             table_name='gutenberg.pride_and_prejudice_by_jane_austen',
             entity_id='paragraph%i' % i,
             problem=new_problem,
-            free_text=paragraph,
-            organization_id=None
+            free_text=paragraph
         ))
     db.session.commit()
 

@@ -13,16 +13,6 @@
         <td>{{ sample.organization_id }}</td>
       </tr> #}
       <tr>
-        <th>Progress</th>
-        <td>
-          <div class="progress" style="margin-bottom: 0;">
-            <div class="progress-bar" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: {{ progress*100|round }}%; {% if progress < 0.02 %}color: black;{% endif %}">
-              {{ (progress*100)|round(2) }}%
-            </div>
-          </div>
-        </td>
-      </tr>
-      <tr>
         <th>Table name</th>
         <td>{{ sample.table_name }}</td>
       </tr>
@@ -59,89 +49,13 @@
       <p style="padding-left: 15px; color: gray;"><strong>Tip:</strong> You may use keybindings 1, 2 and 3 to label data faster</p>
     {% else %}
       <div id="react-multi-label"></div>
-      <script>annotate.renderMultiLabelSelector('react-multi-label', {{ problem_labels_arr | tojson }}, {{ sample.id|tojson }});</script>
-      {#
-      <div class="multi-label">
-        <form action="#" method="POST">
-          <input type="hidden" name="data_id" value="{{ sample.id }}" />
-          <table class="table" style="margin-top: 30px;">
-            {% for label in problem.labels %}
-              <tr>
-                <th>{{ label.label }}</th>
-                <td><label class="label color-yes"><input type="radio" name="label_{{ label.id }}" value="yes"> Yes</label></td>
-                <td><label class="label color-no"><input type="radio" name="label_{{ label.id }}" value="no"> No</label></td>
-                <td><label class="label color-skip"><input type="radio" name="label_{{ label.id }}" value="skip"> Skip</label></td>
-              </tr>
-            {% endfor %}
-            <tr>
-              <td colspan="4"><button type="submit" class="button">Label</button></td>
-            </tr>
-          </table>
-        </form>
-      </div>
-      #}
+      <script>annotate.renderMultiLabelSelector('react-multi-label', {{ problem_labels_arr | tojson }}, {{ dict(data_id=sample.id, classification_type=problem.classification_type)|tojson }});</script>
       <p style="padding-left: 15px; padding-top: 10px; color: gray;"><strong>Tip:</strong> You may use keybindings 1, 2 and 3 to label data faster</p>
     {% endif %}
   {% else %}
     <p>No sample left</p>
   {% endif %}
 
-  <h2>Added labels <span class="badge">{{ labeled_data_count }}</span></h2>
-  <table class="table">
-    <thead>
-      <tr>
-        <th>Free text</th>
-        <th style="width: 150px;">Label</th>
-        <th style="width: 100px;">Probability</th>
-        <th></th>
-      </tr>
-    </thead>
-    <tbody>
-      {% for event in event_log %}
-        <tr>
-          <td>{{ event.data.free_text }}</td>
-          <td>
-            {% if event.label_matches == True %}
-              <span class="badge color-yes" title="Labeled as true">✓ {{ event.label.label }}</span>
-            {% elif event.label_matches == False %}
-              <span class="badge color-no" title="Labeled as false">× {{ event.label.label }}</span>
-            {% else %}
-              <span class="badge color-skip" title="Skipped labeling">? {{ event.label.label }}</span>
-            {% endif %}
-          </td>
-          <td>
-            {% for probability in event.data.probabilities %}
-              {% if probability.label == event.label %}
-                {% if probability.probability is none %}n/a{% else %}{{ (probability.probability*100)|round(2) }} %{% endif %}
-              {% endif %}
-            {% endfor %}
-          </td>
-          <td>
-            <div class="dropdown">
-              <button class="btn btn-default btn-small dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
-                Undo
-                <span class="caret"></span>
-              </button>
-              <ul class="dropdown-menu" aria-labelledby="dropdownMenu1">
-                <li><form action="{{ url_for('delete_label_event', id=event.id, problem_id=problem.id) }}" method="POST">
-                  <input type="hidden" name="value" value="true" />
-                  <button type="submit">Mark as true</button></form></li>
-                <li><form action="{{ url_for('delete_label_event', id=event.id, problem_id=problem.id) }}" method="POST">
-                  <input type="hidden" name="value" value="false" />
-                  <button type="submit">Mark as false</button>
-                </form></li>
-                <li><form action="{{ url_for('delete_label_event', id=event.id, problem_id=problem.id) }}" method="POST">
-                  <input type="hidden" name="value" value="skip" />
-                  <button type="submit">Mark as skip</button>
-                </form></li>
-                <li><form action="{{ url_for('delete_label_event', id=event.id, problem_id=problem.id) }}" method="POST">
-                  <button type="submit">Remove label</button>
-                </form></li>
-              </ul>
-            </div>
-          </td>
-        </tr>
-      {% endfor %}
-    </tbody>
-  </table>
+  <div class="train-log"></div>
+  <script>annotate.fetchTrainLog({{ problem.id|tojson }});</script>
 {% endblock %}

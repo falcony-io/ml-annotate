@@ -44,16 +44,24 @@ class Dataset(db.Model):
 
     sort_value = db.Column(
         db.Float(),
-        nullable=True
+        nullable=True,
+        index=True
     )
 
     __table_args__ = (
         db.UniqueConstraint(
+            'problem_id',
             'table_name',
             'entity_id',
-            name='uq_dataset_table_name_entity_id'
+            name='uq_dataset_problem_idtable_name_entity_id'
         ),
     )
+
+    def matching_label_events(self, matches=True):
+        return [
+            x for x in self.label_events
+            if x.label_matches == matches
+        ]
 
     def __repr__(self):
         return '<Dataset table_name=%r>' % self.table_name

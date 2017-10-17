@@ -59,6 +59,24 @@ body {
 .buttons .button-skip, .color-skip {
   background-color: #7f8c8d;
 }
+.buttons .color-0, .color-0 {
+  background-color: rgb(72, 130, 133);
+}
+.buttons .color-1, .color-1 {
+  background-color: #27ae60;
+}
+.buttons .color-2, .color-2 {
+  background-color: #2980b9;
+}
+.buttons .color-3, .color-3 {
+  background-color: #8e44ad;
+}
+.buttons .color-4, .color-4 {
+  background-color: #d35400;
+}
+.buttons .color-5, .color-5 {
+  background-color: #2c3e50;
+}
 .multi-label {
   .table th {
     font-size: 25px;
@@ -248,7 +266,11 @@ html {
   }
 }
 .badge-no-labels {
-  color: gray;
+  color: rgb(236, 240, 241);
+  font-size: 12px;
+}
+.badge-no-category {
+  color: rgb(44, 62, 80);
   font-size: 12px;
 }
 .multi-label-selector {
@@ -260,7 +282,6 @@ html {
     > a {
       display: block;
       color: white;
-      background-color: #c0392b;
       margin: 5px;
       width: 100%;
       padding: 20px;
@@ -282,7 +303,7 @@ html {
       }
 
       &.selected {
-        background-color: #27ae60;
+        box-shadow: 0px 0px 20px rgba(0, 0, 0, 1);
       }
 
       .keybinding {
@@ -313,5 +334,23 @@ html {
     height: 102px;
     border: 0;
     border-radius: 10px;
+    &.button-no-category {
+      display: inline-block;
+      width: auto;
+      font-size: 14px;
+      height: auto;
+      padding: 5px 10px;
+      background: none;
+      color: rgb(41, 128, 185);
+      text-decoration: underline;
+    }
   }
+}
+
+.undo-dropdown li {
+  min-width: 200px;
+}
+
+.keyboard-shortcuts {
+  padding: 5px;
 }

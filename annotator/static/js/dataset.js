@@ -1,5 +1,6 @@
 import axios from 'axios';
 import moment from 'moment';
+import mousetrap from 'mousetrap';
 import sortedPairs from 'lodash-sorted-pairs'
 import React from 'react';
 import ReactDOM from 'react-dom';
@@ -16,6 +17,8 @@ class Dataset extends React.Component {
       this.props.data.map(x => x[4] || {}).map(Object.keys)
     ));
 
+    this.problemLabelsAsDict = _.fromPairs(this.props.problemLabels);
+    this.problemLabelsIndex = _.fromPairs(this.props.problemLabels.map((x, i) => [x[0], i]));
     this.state = {
       data: props.data.map(x => ({
         id: x[0],
@@ -23,13 +26,13 @@ class Dataset extends React.Component {
         entityId: x[2],
         tableName: x[3],
         meta: x[4],
-        probability: x[5],
+        probability: x[5] || {},
         sortValue: x[6],
-        labels: x[7] || [],
+        labels: x[7] || [],
         labelCreatedAt: x[8]
       })),
       selectedIds: new Set(),
-      selectedLabel: sortedPairs(this.props.problemLabels)[0][0],
+      selectedLabel: this.props.problemLabels[0][0],
       dynamicMetaColumns,
       columns: [
         { Header: 'ID', accessor: 'id', show: false },
@@ -58,26 +61,30 @@ class Dataset extends React.Component {
           },
           show: false
         },
-        // {
-        //   Header: 'Probability',
-        //   accessor: 'probability',
-        //   Cell: row => <span>{JSON.stringify(row.value)}{Math.round(row.value*1000)/10} %</span>
-        // },
         { Header: 'Sort value', accessor: 'sortValue', show: false },
         {
           Header: 'Labels',
           accessor: 'labels',
-          width: 100,
+          width: 200,
           Cell: row => (
             <div>
-              {row.value === null ? <span className="badge-no-labels">no labels</span>: ''}
+              {row.value === null || !row.value.length ? <span className="badge-no-labels">no labels</span>: ''}
+              {
+                this.props.classificationType === 'multi-class' &&
+                row.value &&
+                row.value.length &&
+                row.value.every(([key, value]) => !value) ? <span className="badge-no-category">No category</span> : ''}
               {(row.value || []).map(([key, value], index) => {
-                const label = this.props.problemLabels[key];
+                const label = this.problemLabelsAsDict[key];
 
-                if (value === true) return <span key={index} className="badge color-yes" title="Labeled as true">✓ {label}</span>;
-                else if (value === false) return <span key={index} className="badge color-no" title="Labeled as false">× {label}</span>;
-                else if (value === null) return <span key={index} className="badge color-skip" title="Skipped label">? {label}</span>;
-                else return <span key={index} className="badge">Unknown {value}</span>;
+                if (this.props.classificationType === 'multi-class') {
+                  if (value === true) return <span key={index} className={'badge color-' + this.problemLabelsIndex[key]} title="Labeled as true">✓ {label}</span>;
+                } else {
+                  if (value === true) return <span key={index} className="badge color-yes" title="Labeled as true">✓ {label}</span>;
+                  else if (value === false) return <span key={index} className="badge color-no" title="Labeled as false">× {label}</span>;
+                  else if (value === null) return <span key={index} className="badge color-skip" title="Skipped label">? {label}</span>;
+                  else return <span key={index} className="badge">Unknown {value}</span>;
+                }
               })}
             </div>
           ),
@@ -86,6 +93,8 @@ class Dataset extends React.Component {
               return true;
             } else if (filter.value === 'none') {
               return row[filter.id] === null || !row[filter.id].length;
+            } else if (filter.value === 'all_false') {
+              return row[filter.id] && row[filter.id].length && row[filter.id].every(x => !x[1])
             } else if (String(filter.value).includes(':')) {
               const [key, value] = filter.value.split(':');
               const expected = {
@@ -106,14 +115,15 @@ class Dataset extends React.Component {
             >
               <option value="all">All</option>
               {
-                sortedPairs(this.props.problemLabels).map(([id, label]) => {
+                this.props.problemLabels.map(([id, label]) => {
                   return [
-                    <option key="A" value={id + ':true'}>{label}: True</option>,
-                    <option key="B" value={id + ':false'}>{label}: False</option>,
-                    <option key="C" value={id + ':skip'}>{label}: Skip</option>,
+                    <option key={'A' + id} value={id + ':true'}>{label}: True</option>,
+                    <option key={'B' + id} value={id + ':false'}>{label}: False</option>,
+                    <option key={'C' + id} value={id + ':skip'}>{label}: Skip</option>,
                   ];
                 })
               }
+              <option value="all_false">All labels marked as false</option>
               <option value="none">None</option>
             </select>
           )
@@ -124,7 +134,7 @@ class Dataset extends React.Component {
           filterable: false,
           Cell: row => (
             <label style={{ height: '100%', width: '100%', textAlign: 'center' }}>
-              <input type="checkbox" onChange={this.selectId.bind(this, row.original.id)} checked={this.state.selectedIds.has(row.original.id)} />
+              <input className="mousetrap" type="checkbox" onChange={this.selectId.bind(this, row.original.id)} checked={this.state.selectedIds.has(row.original.id)} />
             </label>
           ),
           width: 32
@@ -148,17 +158,60 @@ class Dataset extends React.Component {
         show: false
       })
     }
-    for (let label of Object.entries(this.props.problemLabels)) {
+    for (let label of this.props.problemLabels) {
       this.state.columns.push({
         id: `x.probability.${label[0]}`,
         Header: `probability: ${label[1]}`,
         accessor: x => x.probability[label[0]],
         show: false,
-        Cell: row => <span>{Math.round(row.value*1000)/10} %</span>
+        Cell: row => <span>{row.value === undefined ? 'n/a' : Math.round(row.value*1000)/10} %</span>
       })
     }
     for (let column of this.state.columns) {
       column.show = column.show === undefined ? true : column.show;
+    }
+  }
+
+  componentDidMount() {
+    this.keyBindings = {};
+    this.props.problemLabels.map((label, i) => {
+      console.log(label, i);
+      this.keyBindings[''+(i+1)] = this.shortcutForLabeling.bind(this, i);
+      mousetrap.bind(''+(i+1), this.keyBindings[''+(i+1)]);
+    });
+
+    if (this.props.classificationType === 'multi-class') {
+      this.keyBindings['0'] = this.shortcutForLabeling.bind(this, 'no_category');
+      mousetrap.bind('0', this.keyBindings['0']);
+    } else {
+      this.keyBindings['0'] = this.shortcutForLabeling.bind(this, 'false');
+      mousetrap.bind('0', this.keyBindings['0']);
+    }
+  }
+
+  componentWillUnmount() {
+    for (const [key, func] of Object.entries(this.keyBindings)) {
+      mousetrap.unbind(key, func);
+    }
+    this.keyBindings = {};
+  }
+
+  shortcutForLabeling(i) {
+    if (i === 'no_category') {
+      this.setState({
+        selectedLabel: i
+      });
+      this.markSelectedAs(true, null);
+    } else if (i === 'false') {
+      this.setState({
+        selectedLabel: this.props.problemLabels[0][0]
+      });
+      this.markSelectedAs(false, null);
+    } else {
+      this.setState({
+        selectedLabel: this.props.problemLabels[i][0]
+      });
+      this.markSelectedAs(true, null);
     }
   }
 
@@ -175,7 +228,11 @@ class Dataset extends React.Component {
   }
 
   markSelectedAs(value, e) {
-    e.preventDefault();
+    const props = this.props;
+
+    if (e) {
+      e.preventDefault();
+    }
 
     if (this.state.selectedIds.size >= 50) {
       if (!confirm(`This will change ${this.state.selectedIds.size} labels. Are you sure?`)) {
@@ -184,7 +241,13 @@ class Dataset extends React.Component {
     }
 
     function changeLabel(previous, labelId, newValue) {
+      if (props.classificationType === 'multi-class') {
+        if (newValue === undefined) return [];
+        else if (labelId == 'no_category') return [[labelId, false]];
+        else return [[labelId, newValue]];
+      }
       const arr = previous.filter(([key, value]) => key !== labelId);
+
       if (newValue !== undefined) {
         arr.push([labelId, newValue]);
       }
@@ -192,13 +255,18 @@ class Dataset extends React.Component {
     }
 
     const problemId = window.location.pathname.split('/')[1];
-    axios.post(`/${problemId}/batch_label`, {
+    const post = props.classificationType === 'multi-class' ? (
+      (axios.post(`/${problemId}/multi_class_batch_label`, {
+        label: value === 'undo' ? 'undo' : this.state.selectedLabel,
+        selectedIds: Array.from(this.state.selectedIds),
+      }))
+    ) : (axios.post(`/${problemId}/batch_label`, {
       label: this.state.selectedLabel,
       selectedIds: Array.from(this.state.selectedIds),
       value: value
-    })
-    .then((response) => {
-      // const changed = [];
+    }));
+
+    post.then((response) => {
       const newData = this.state.data.slice();
 
       for (const [i, item] of this.state.data.entries()) {
@@ -268,15 +336,22 @@ class Dataset extends React.Component {
             {this.state.selectedIds.size > 0 ? [
                 <div key="a">
                   <select value={this.state.selectedLabel} onChange={this.changeSelectedLabel.bind(this)}>
-                    {sortedPairs(this.props.problemLabels).map(([key, name]) => {
+                    {this.props.problemLabels.map(([key, name]) => {
                       return <option key={key} value={key}>{name}</option>;
                     })}
+                    {this.props.classificationType === 'multi-class' ? (
+                      <option key="no_category" value="no_category">No category</option>
+                    ) : ''}
                   </select>
                 </div>,
                 <div key="b">
-                  <a href="#" className="color-yes" onClick={this.markSelectedAs.bind(this, true)}>Mark as true</a>
-                  <a href="#" className="color-no" onClick={this.markSelectedAs.bind(this, false)}>Mark as false</a>
-                  <a href="#" className="color-skip" onClick={this.markSelectedAs.bind(this, null)}>Mark as skip</a>
+                  <a href="#" className="color-yes" onClick={this.markSelectedAs.bind(this, true)}>{this.props.classificationType === 'multi-class' ? 'Categorize' : 'Mark as true'}</a>
+                  {this.props.classificationType === 'multi-class' ? '' : (
+                    <span>
+                      <a href="#" className="color-no" onClick={this.markSelectedAs.bind(this, false)}>Mark as false</a>
+                      <a href="#" className="color-skip" onClick={this.markSelectedAs.bind(this, null)}>Mark as skip</a>
+                    </span>
+                  )}
                   <a href="#" className="color-special" onClick={this.markSelectedAs.bind(this, 'undo')}>Remove labels</a>
                   <a href="#" className="color-special" onClick={this.clearSelection.bind(this)}>Select none</a>
                 </div>
@@ -319,13 +394,20 @@ class Dataset extends React.Component {
               )
             }}
         </ReactTable>
+        <div className="keyboard-shortcuts">
+          <h5>Keyboard shorcuts</h5>
+          {this.props.problemLabels.map((x, i) => {
+            return <span key={i}><span className="badge">{i+1}</span>{x[1]}<br /></span>;
+          })}
+          <span><span className="badge">0</span>no category<br /></span>
+        </div>
       </div>
     );
   }
 }
 
-function renderDataset(elementID, data, problemLabels) {
-  ReactDOM.render(<Dataset data={data} problemLabels={_.fromPairs(problemLabels)} />, document.getElementById(elementID));
+function renderDataset(elementID, data, config) {
+  ReactDOM.render(<Dataset data={data} problemLabels={config.problem_labels} classificationType={config.classification_type} />, document.getElementById(elementID));
 }
 
 export default renderDataset;

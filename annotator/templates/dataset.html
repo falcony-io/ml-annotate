@@ -7,7 +7,11 @@
     annotate.renderDataset(
         'render-dataset',
       {{ data|tojson }},
-      {{ problem_labels|tojson }}
+      {{ dict(
+          problem_labels=problem_labels,
+          classification_type=problem.classification_type
+        )|tojson
+      }}
     );
   </script>
   <style>

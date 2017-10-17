@@ -1,0 +1,114 @@
+<h2>Added labels <span class="badge">{{ labeled_data_count }}</span></h2>
+<table class="table">
+  <thead>
+    {#
+      <tr>
+        <td>Progress</td>
+        <td>
+          <div class="progress" style="margin-bottom: 0;">
+            <div class="progress-bar" role="progressbar" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100" style="width: {{ progress*100|round }}%; {% if progress < 0.02 %}color: black;{% endif %}">
+              {{ (progress*100)|round(2) }}%
+            </div>
+          </div>
+        </td>
+      </tr>
+    #}
+    <tr>
+      <th>Free text</th>
+      {# <th style="width: 150px;">Label</th> #}
+      {# <th style="width: 100px;">Probability</th> #}
+      <th></th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for data, events in event_log %}
+      <tr>
+        <td style="font-size: 10px;">{{ data.free_text }}</td>
+        <td>
+          <table style="width: 100%; min-width: 300px;">
+            {% if problem.classification_type == 'multi-class' %}
+              <tr>
+                <td style="width: 100px;">
+                  {% set true_labels = data.matching_label_events(true) %}
+                  {% for event in true_labels %}
+                    <span class="badge color-{{ event.label.order_index }}" title="Labeled as true">✓ {{ event.label.label }}</span>
+                  {% else %}
+                    No categories
+                  {% endfor %}
+                </td>
+                <td style="width: 100px;">
+                  {% for probability in data.probabilities %}
+                    <span class="badge">{{ probability.label.label}}: {% if probability.probability is none %}n/a{% else %}{{ (probability.probability*100)|round(2) }}&nbsp;%{% endif %}</span>
+                  {% endfor %}
+                </td>
+                <td style="width: 50px; text-align: right;">
+                  <div class="dropdown">
+                    <button class="btn btn-default btn-small dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                      Undo
+                      <span class="caret"></span>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-right undo-dropdown" aria-labelledby="dropdownMenu1">
+                      {% for label in data.problem.labels|sort(attribute='order_index') %}
+                        <li><form action="{{ url_for('multi_class_delete_label_event', problem_id=problem.id, data_id=data.id) }}" method="POST">
+                        <input type="hidden" name="label_id" value="{{ label.id }}" />
+                        <button type="submit">{{ label.label }}</button></form></li>
+                      {% endfor %}
+                      <li><form action="{{ url_for('multi_class_delete_label_event', problem_id=problem.id, data_id=data.id) }}" method="POST">
+                      <input type="hidden" name="label_id" value="" />
+                      <button type="submit">No category</button></form></li>
+                    </ul>
+                  </div>
+                </td>
+              </tr>
+            {% else %}
+              {% for event in events|sort(attribute='label.order_index') %}
+                <tr>
+                  <td style="vertical-align: top;">
+                    {% if event.label_matches == True %}
+                      <span class="badge color-yes" title="Labeled as true">✓ {{ event.label.label }}</span>
+                    {% elif event.label_matches == False %}
+                      <span class="badge color-no" title="Labeled as false">× {{ event.label.label }}</span>
+                    {% else %}
+                      <span class="badge color-skip" title="Skipped labeling">? {{ event.label.label }}</span>
+                    {% endif %}
+                    <span style="font-size: 12px; display: inline-block; padding-left: 10px;">
+                      {% for probability in event.data.probabilities %}
+                        {% if probability.label == event.label %}
+                          {% if probability.probability is none %}n/a{% else %}{{ (probability.probability*100)|round(2) }}&nbsp;%{% endif %}
+                        {% endif %}
+                      {% endfor %}
+                    </span>
+                  </td>
+                  <td style="width: 50px; text-align: right; padding-bottom: 5px;">
+                    <div class="dropdown">
+                      <button class="btn btn-default btn-small dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                        Undo
+                        <span class="caret"></span>
+                      </button>
+                      <ul class="dropdown-menu dropdown-menu-right undo-dropdown" aria-labelledby="dropdownMenu1">
+                        <li><form action="{{ url_for('delete_label_event', id=event.id, problem_id=problem.id) }}" method="POST">
+                          <input type="hidden" name="value" value="true" />
+                          <button type="submit">Mark as true</button></form></li>
+                        <li><form action="{{ url_for('delete_label_event', id=event.id, problem_id=problem.id) }}" method="POST">
+                          <input type="hidden" name="value" value="false" />
+                          <button type="submit">Mark as false</button>
+                        </form></li>
+                        <li><form action="{{ url_for('delete_label_event', id=event.id, problem_id=problem.id) }}" method="POST">
+                          <input type="hidden" name="value" value="skip" />
+                          <button type="submit">Mark as skip</button>
+                        </form></li>
+                        <li><form action="{{ url_for('delete_label_event', id=event.id, problem_id=problem.id) }}" method="POST">
+                          <button type="submit">Remove label</button>
+                        </form></li>
+                      </ul>
+                    </div>
+                  </td>
+                </tr>
+              {% endfor %}
+            {% endif %}
+          </table>
+        </td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>

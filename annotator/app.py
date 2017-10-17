@@ -16,8 +16,10 @@ from flask import (
     abort
 )
 from flask_assets import Environment, Bundle
+from flask_debugtoolbar import DebugToolbarExtension
 from flask_login import current_user, login_required, login_user, logout_user
 from flask_sslify import SSLify
+from itertools import groupby
 from sh import createdb, dropdb, psql
 from wtforms.fields import PasswordField, TextField
 from flask_wtf import Form
@@ -59,6 +61,14 @@ js = Bundle(
 )
 assets.register('js_all', js)
 
+# app.config['DEBUG_TB_ENABLED'] = True
+# app.config['DEBUG_TB_PANELS'] = [
+#     'flask_debugtoolbar.panels.timer.TimerDebugPanel',
+#     'flask_debugtoolbar.panels.sqlalchemy.SQLAlchemyDebugPanel',
+#     'flask_debugtoolbar.panels.profiler.ProfilerDebugPanel'
+# ]
+app.config['DEBUG_TB_INTERCEPT_REDIRECTS'] = False
+app.config['SQLALCHEMY_RECORD_QUERIES'] = True
 app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get(
     'DATABASE_URL',
     'postgres://localhost/annotator'
@@ -73,6 +83,7 @@ app.config['WEBPACK_TEMP'] = 'temp.js'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', 'development')
 
+toolbar = DebugToolbarExtension(app)
 app.shell_context_processor(shell_context)
 sslify = SSLify(app)
 db.init_app(app)
@@ -175,6 +186,40 @@ def logout():
     return redirect(url_for('login'))
 
 
+@app.route('/<uuid:problem_id>/multi_class_batch_label', methods=['POST'])
+def multi_class_batch_label(problem_id):
+    problem = Problem.query.get(problem_id)
+    assert_rights_to_problem(problem)
+    data = request.get_json()
+    ids = [str(x) for x in data['selectedIds']]
+    if not ids:
+        return jsonify(error='No ids selected');
+
+    labels = (
+        db.session.query(LabelEvent.id)
+        .outerjoin(LabelEvent.data).filter(
+            Dataset.id.in_(ids),
+            Dataset.problem_id == problem.id
+        )
+        .all()
+    )
+    if labels:
+        LabelEvent.query.filter(
+            LabelEvent.id.in_([x[0] for x in labels])
+        ).delete(synchronize_session='fetch')
+
+    if data['label'] != 'undo':
+        for label in problem.labels:
+            for dataset_id in ids:
+                db.session.add(LabelEvent(
+                    label_id=label.id,
+                    label_matches=str(label.id) == data['label'],
+                    data_id=dataset_id
+                ))
+    db.session.commit()
+    return jsonify(status='ok', labels_removed=len(labels));
+
+
 @app.route('/<uuid:problem_id>/batch_label', methods=['POST'])
 def batch_label(problem_id):
     problem = Problem.query.get(problem_id)
@@ -205,6 +250,7 @@ def batch_label(problem_id):
                 label_matches=data['value'],
                 data_id=dataset_id
             ))
+
 
     db.session.commit()
     return jsonify(status='ok', labels_removed=len(labels));
@@ -259,8 +305,7 @@ def dataset(problem_id):
     problem_labels = db.session.query(
         ProblemLabel.id,
         ProblemLabel.label
-    ).filter(ProblemLabel.problem == problem).all()
-
+    ).filter(ProblemLabel.problem == problem).order_by(ProblemLabel.order_index).all()
 
     return render_template(
         'dataset.html',
@@ -302,6 +347,65 @@ def training_job(problem_id):
     )
 
 
+def get_event_log(problem):
+    event_groups = db.session.query(LabelEvent.data_id, db.func.max(LabelEvent.created_at)).join(
+        Dataset
+    ).filter(
+        Dataset.problem_id == problem.id
+    ).order_by(
+        db.func.max(LabelEvent.created_at).desc()
+    ).group_by(LabelEvent.data_id).limit(10)
+    event_groups_ids = [x[0] for x in event_groups.all()]
+
+    if not event_groups_ids:
+        return []
+
+    data = groupby(
+        LabelEvent.query.join(
+            Dataset
+        ).filter(
+            Dataset.problem_id == problem.id,
+            LabelEvent.data_id.in_(event_groups_ids)
+        ).order_by(
+            db.case(
+                {uuid: i for i, uuid in enumerate(event_groups_ids)},
+                value=LabelEvent.data_id,
+                else_=len(event_groups_ids)+1
+            )
+        )
+    , key=lambda x: x.data)
+    return [
+        (a, list(b)) for a, b in data
+    ]
+
+
+@app.route('/<uuid:problem_id>/train_log', methods=['GET', 'POST'])
+@login_required
+def train_log(problem_id):
+    problem = Problem.query.get(problem_id)
+    assert_rights_to_problem(problem)
+    labeled_data_count = Dataset.query.filter(
+        Dataset.label_events.any(),
+        Dataset.problem_id == problem.id
+    ).group_by(Dataset.id).count()
+    progress = (
+        labeled_data_count /
+        Dataset.query.filter(Dataset.problem_id == problem.id).count()
+    )
+
+    return render_template(
+        'train_log.html',
+        event_log=get_event_log(problem),
+        progress=progress,
+        labeled_data_count=labeled_data_count,
+        problem=problem,
+        problem_labels_arr=[
+            dict(id=x.id, name=x.label, order_index=x.order_index)
+            for x in sorted(problem.labels, key=lambda x: x.order_index)
+        ]
+    )
+
+
 @app.route('/<uuid:problem_id>/train', methods=['GET', 'POST'])
 @login_required
 def train(problem_id):
@@ -339,38 +443,45 @@ def train(problem_id):
         ~Dataset.label_events.any(),
         Dataset.problem_id == problem.id
     ).order_by(Dataset.sort_value, db.func.RANDOM()).first()
-    labeled_data_count = Dataset.query.filter(
-        Dataset.label_events.any(),
-        Dataset.problem_id == problem.id
-    ).count()
-    progress = (
-        labeled_data_count /
-        Dataset.query.filter(Dataset.problem_id == problem.id).count()
-    )
+
     return render_template(
         'train.html',
         sample=sample,
-        event_log=LabelEvent.query.join(
-            Dataset
-        ).filter(
-            Dataset.problem_id == problem.id
-        ).order_by(
-            LabelEvent.created_at.desc()
-        ).limit(10),
-        progress=progress,
-        labeled_data_count=labeled_data_count,
-        training_job_count=TrainingJob.query.count(),
-        training_jobs=TrainingJob.query.filter(
-            TrainingJob.problem_id == problem.id
-        ).order_by(
-            TrainingJob.created_at.desc()
-        ).limit(5),
         problem=problem,
         problem_labels_arr=[
-            dict(id=x.id, name=x.label)
-            for x in problem.labels
+            dict(id=x.id, name=x.label, order_index=x.order_index)
+            for x in sorted(problem.labels, key=lambda x: x.order_index)
         ]
     )
+
+
+@app.route('/<uuid:problem_id>/multi_class_delete_label_event/<uuid:data_id>', methods=['POST'])
+@login_required
+def multi_class_delete_label_event(problem_id, data_id):
+    data = Dataset.query.get(data_id)
+    assert_rights_to_problem(data.problem)
+    problem_labels = data.problem.labels
+    label_id = request.form.get('label_id')
+    selected_label = ProblemLabel.query.get(label_id) if label_id else None
+
+    for x in data.label_events:
+        db.session.delete(x)
+
+    for label in problem_labels:
+        db.session.add(LabelEvent(
+            data=data,
+            label=label,
+            label_matches=True if label == selected_label else None
+        ))
+    db.session.commit()
+
+    if selected_label:
+        flash('Label event replaced with %s' % selected_label.label)
+    else:
+        flash('Label events removed')
+
+    return redirect(url_for('train', problem_id=problem_id))
+
 
 
 @app.route('/<uuid:problem_id>/delete_label_event/<uuid:id>', methods=['POST'])
@@ -455,7 +566,10 @@ def import_fake_data():
         x.strip() for x in text_contents.replace('\r', '').split('\n\n')
         if x.strip()
     ]
-    new_problem = Problem(label='Example')
+    new_problem = Problem(
+        name='Example',
+        labels=[ProblemLabel(label='Example', order_index=1)]
+    )
     for i, paragraph in enumerate(paragraphs):
         db.session.add(Dataset(
             table_name='gutenberg.pride_and_prejudice_by_jane_austen',

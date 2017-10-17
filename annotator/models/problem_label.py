@@ -26,5 +26,10 @@ class ProblemLabel(db.Model):
         nullable=False,
     )
 
+    order_index = db.Column(
+        db.Integer,
+        nullable=False,
+    )
+
     def __repr__(self):
         return '<Problemlabel label=%r>' % (self.label,)
