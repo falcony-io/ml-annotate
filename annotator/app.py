@@ -6,6 +6,7 @@ from flask import Flask, render_template
 from flask_assets import Bundle, Environment
 from flask_debugtoolbar import DebugToolbarExtension
 from flask_sslify import SSLify
+from raven.contrib.flask import Sentry
 from webassets.filter import get_filter, register_filter
 from webassets_webpack import Webpack
 
@@ -66,6 +67,8 @@ app.shell_context_processor(shell_context)
 sslify = SSLify(app)
 db.init_app(app)
 login_manager.init_app(app)
+if os.environ.get('SENTRY_DSN'):
+    sentry = Sentry(app, dsn=os.environ.get('SENTRY_DSN'))
 
 assert app.debug or os.environ.get('SECRET_KEY'), (
     'Should run in debug mode or should have SECRET_KEY set'
