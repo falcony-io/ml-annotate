@@ -44,7 +44,9 @@ class DatasetLabelProbability(db.Model):
             name='chk_dataset_probability'
         ),
         db.UniqueConstraint(
-            'data_id', 'label_id', name='uq_dataset_label_probability_data_id_label_id'
+            'data_id',
+            'label_id',
+            name='uq_dataset_label_probability_data_id_label_id'
         ),
     )
 

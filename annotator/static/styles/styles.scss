@@ -167,6 +167,9 @@ html {
   height: 100%;
   display: grid;
 }
+.dark-page #flDebug {
+  display: none!important;
+}
 .dark-page .container {
   display: flex;
   justify-content: center;

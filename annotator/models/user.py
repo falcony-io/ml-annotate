@@ -58,7 +58,9 @@ class User(db.Model, UserMixin):
         from annotator.models import Problem, UserProblem
 
         return cls.is_superuser | Problem.id.in_(
-            db.session.query(UserProblem.problem_id).filter(UserProblem.user_id == cls.id)
+            db.session.query(UserProblem.problem_id).filter(
+                UserProblem.user_id == cls.id
+            )
         )
 
     def __repr__(self):

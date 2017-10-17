@@ -1,3 +1,4 @@
+
 from sqlalchemy_utils import UUIDType
 
 from annotator.extensions import db

@@ -13,7 +13,10 @@ from annotator.extensions import db
 class ProblemQuery(BaseQuery):
     def for_user(self, user):
         from annotator.models import User
-        return self.filter(User.can_access_problem(self), User.id == current_user.id)
+        return self.filter(
+            User.can_access_problem(self),
+            User.id == current_user.id
+        )
 
 
 class Problem(db.Model):
@@ -52,13 +55,17 @@ class Problem(db.Model):
     def dataset_count(self):
         from annotator.models import Dataset
 
-        return object_session(self).query(Dataset).filter(Dataset.problem == self).count()
+        return object_session(self).query(Dataset).filter(
+            Dataset.problem == self
+        ).count()
 
     @dataset_count.expression
     def dataset_count(cls):
         from annotator.models import Dataset
 
-        return select([func.count(Dataset.id)]).where(Dataset.problem_id == cls.id).label('dataset_count')
+        return select([func.count(Dataset.id)]).where(
+            Dataset.problem_id == cls.id
+        ).label('dataset_count')
 
     def __repr__(self):
         return '<Problem name=%r>' % self.name

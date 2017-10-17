@@ -31,4 +31,7 @@ class UserProblem(db.Model):
     user = db.relationship(User, backref='problems')
 
     def __repr__(self):
-        return '<UserProblem problem=%r user=%r>' % (self.problem.label, self.user.username)
+        return '<UserProblem problem=%r user=%r>' % (
+            self.problem.label,
+            self.user.username
+        )
