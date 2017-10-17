@@ -63,7 +63,7 @@ body {
   background-color: rgb(72, 130, 133);
 }
 .buttons .color-1, .color-1 {
-  background-color: #27ae60;
+  background-color: #0e7b3c;
 }
 .buttons .color-2, .color-2 {
   background-color: #2980b9;
@@ -307,6 +307,9 @@ html {
 
       &.selected {
         box-shadow: 0px 0px 20px rgba(0, 0, 0, 1);
+        .glyphicon {
+          color: #3eef46;
+        }
       }
 
       .keybinding {
