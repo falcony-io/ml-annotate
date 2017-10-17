@@ -175,7 +175,6 @@ class Dataset extends React.Component {
   componentDidMount() {
     this.keyBindings = {};
     this.props.problemLabels.map((label, i) => {
-      console.log(label, i);
       this.keyBindings[''+(i+1)] = this.shortcutForLabeling.bind(this, i);
       mousetrap.bind(''+(i+1), this.keyBindings[''+(i+1)]);
     });
