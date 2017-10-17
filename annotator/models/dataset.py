@@ -44,7 +44,8 @@ class Dataset(db.Model):
 
     sort_value = db.Column(
         db.Float(),
-        nullable=True
+        nullable=True,
+        index=True
     )
 
     __table_args__ = (
