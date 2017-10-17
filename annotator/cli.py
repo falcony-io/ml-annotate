@@ -1,3 +1,5 @@
+import re
+
 import click
 import requests
 from sh import createdb, dropdb, psql
@@ -22,25 +24,54 @@ def add_user(username, password):
 
 @app.cli.command()
 def import_fake_data():
-    request = requests.get('https://www.gutenberg.org/files/1342/1342-0.txt')
-    text_contents = max(request.text.split('***'), key=lambda x: len(x))
-    paragraphs = [
-        x.strip() for x in text_contents.replace('\r', '').split('\n\n')
-        if x.strip()
+    request = requests.get('https://www.gutenberg.org/files/21130/21130-0.txt')
+    quotes = [
+        '%s (%s)' % (x[1].strip(), x[2])
+        for x in re.findall(
+            '([0-9]+)\.\n\n(.+?)_(.+?)_',
+            request.text.replace('\r', ''), re.DOTALL
+        )
     ]
-    new_problem = Problem(
-        name='Example',
-        labels=[ProblemLabel(label='Example', order_index=1)]
+
+    def add_quotes(problem):
+        for i, quote in enumerate(quotes):
+            db.session.add(Dataset(
+                table_name='gutenberg.book_of_wise_sayings',
+                entity_id='quote%i' % i,
+                problem=problem,
+                free_text=quote
+            ))
+
+    binary_problem = Problem(
+        name='Book of Wise sayings (Binary label)',
+        labels=[ProblemLabel(label='Good quote', order_index=1)]
     )
-    for i, paragraph in enumerate(paragraphs):
-        db.session.add(Dataset(
-            table_name='gutenberg.pride_and_prejudice_by_jane_austen',
-            entity_id='paragraph%i' % i,
-            problem=new_problem,
-            free_text=paragraph
-        ))
+    add_quotes(binary_problem)
+    multi_label = Problem(
+        name='Book of Wise sayings (Multi-label)',
+        classification_type='multi-label',
+        labels=[
+            ProblemLabel(label='Motivational', order_index=1),
+            ProblemLabel(label='Love', order_index=2),
+            ProblemLabel(label='Inspiration', order_index=3),
+            ProblemLabel(label='Relationships', order_index=4),
+        ]
+    )
+    add_quotes(multi_label)
+    multi_class = Problem(
+        name='Book of Wise sayings (Multi-class)',
+        classification_type='multi-class',
+        labels=[
+            ProblemLabel(label='Excellent', order_index=1),
+            ProblemLabel(label='Good', order_index=2),
+            ProblemLabel(label='Okay', order_index=3),
+            ProblemLabel(label='Bad', order_index=4),
+        ]
+    )
+    add_quotes(multi_class)
+
     db.session.commit()
-    print('Inserted %i rows' % len(paragraphs))
+    print('Inserted %i quotes' % len(quotes))
 
 
 @app.cli.command()
