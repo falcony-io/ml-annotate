@@ -77,6 +77,24 @@ body {
 .buttons .color-5, .color-5 {
   background-color: #2c3e50;
 }
+.font-color-0 {
+  color: rgb(72, 130, 133);
+}
+.font-color-1 {
+  color: #0e7b3c;
+}
+.font-color-2 {
+  color: #2980b9;
+}
+.font-color-3 {
+  color: #8e44ad;
+}
+.font-color-4 {
+  color: #d35400;
+}
+.font-color-5 {
+  color: #2c3e50;
+}
 .multi-label {
   .table th {
     font-size: 25px;
@@ -359,4 +377,42 @@ html {
 
 .keyboard-shortcuts {
   padding: 5px;
+}
+
+.dataset-probability {
+  font-size: 8px;
+  display: block;
+  padding: 2px 4px;
+  &.probable {
+    color: white;
+  }
+}
+.dataset-probability-value {
+  padding-left: 2px;
+}
+.floating-keyboard-shortcuts {
+  position: fixed;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  display: flex;
+  font-size: 10px;
+  background-color: rgb(44, 62, 80);
+  color: white;
+  height: 35px;
+
+  h5 {
+    padding: 0px 10px;
+  }
+
+  > div {
+    line-height: 35px;
+    padding: 0px 10px;
+  }
+
+  &::before {
+    content: " ";
+    display: block;
+    padding-top: 35px;
+  }
 }

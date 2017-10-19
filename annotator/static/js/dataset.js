@@ -61,6 +61,23 @@ class Dataset extends React.Component {
           },
           show: false
         },
+        {
+          Header: 'Probability',
+          accessor: 'probability',
+          filterable: false,
+          Cell: row => {
+            const contents = row.value || {};
+            return _.orderBy(_.toPairs(contents), 1, 'desc').map(([label, probability]) => (
+              <div className={'dataset-probability ' + (
+                  probability && probability > 0.5 ? 'probable color-' + this.problemLabelsIndex[label] : 'not-probable font-color-' + this.problemLabelsIndex[label]
+                )} key={label}>
+                <span className="dataset-probability-key">{this.problemLabelsAsDict[label]}</span>:
+                <span className="dataset-probability-value">{probability ? Math.round(probability*1000)/10 : 'n/a'} %</span>
+              </div>
+            ));
+          },
+          show: false
+        },
         { Header: 'Sort value', accessor: 'sortValue', show: false },
         {
           Header: 'Labels',
@@ -393,12 +410,12 @@ class Dataset extends React.Component {
               )
             }}
         </ReactTable>
-        <div className="keyboard-shortcuts">
+        <div className="floating-keyboard-shortcuts">
           <h5>Keyboard shorcuts</h5>
           {this.props.problemLabels.map((x, i) => {
-            return <span key={i}><span className="badge">{i+1}</span>{x[1]}<br /></span>;
+            return <div key={i}><span className="badge">{i+1}</span>{x[1]}</div>;
           })}
-          <span><span className="badge">0</span>no category<br /></span>
+          <div><span className="badge">0</span>no category<br /></div>
         </div>
       </div>
     );
