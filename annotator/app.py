@@ -7,6 +7,7 @@ from flask_assets import Bundle, Environment
 from flask_debugtoolbar import DebugToolbarExtension
 from flask_sslify import SSLify
 from raven.contrib.flask import Sentry
+from webassets.exceptions import FilterError
 from webassets.filter import get_filter, register_filter
 from webassets_webpack import Webpack
 
@@ -114,3 +115,16 @@ def load_user(user_id):
     from annotator.models import User
 
     return User.query.get(user_id)
+
+
+if app.debug:
+    @app.errorhandler(FilterError)
+    def handle_error(error):
+        import html
+
+        return '''
+        <h1>Error</h1>
+        %s
+        ''' % (
+            html.escape(error.args[0].split('stdout=b\'')[1]).replace("\\n", "<br>")
+        )
