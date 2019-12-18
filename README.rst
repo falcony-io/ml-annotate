@@ -27,7 +27,7 @@ ML-Annotate requires Python 3.5 or later.
 3. Create database. This requires you to have PostgreSQL installed so you should have command line tools such as createdb::
 
     .virtualenv/bin/flask resetdb
-    .virtualenv/bin/flask add_user admin password
+    .virtualenv/bin/flask add-user admin password
 
 4. Normally you would want to import your data at this point. We have included a test script to make up some data for testing purposes::
 
