@@ -1,0 +1,40 @@
+version: '3.7'
+
+services:
+  labelling:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    environment:
+      - FLASK_APP=/app/annotator/app.py
+      - DATABASE_URL=postgres://postgres/annotator
+      - FLASK_DEBUG=1
+    networks:
+      - labelling
+
+  shell:
+    build:
+      context: ./
+      dockerfile: Dockerfile
+    environment:
+      - FLASK_APP=/app/annotator/app.py
+      - DATABASE_URL=postgres://postgres/annotator
+      - FLASK_DEBUG=1
+    networks:
+      - labelling
+    command: flask shell
+
+  postgres:
+    image: postgres:11.5-alpine
+    volumes:
+      - labellingdata:/var/lib/postgresql/data
+    networks:
+      - labelling
+
+volumes:
+  labellingdata:
+    driver: local
+
+networks:
+  labelling:
+    name: labelling
