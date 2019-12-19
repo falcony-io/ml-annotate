@@ -5,24 +5,16 @@ services:
     build:
       context: ./
       dockerfile: Dockerfile
+    ports:
+      - 5000:5000
     environment:
       - FLASK_APP=/app/annotator/app.py
       - DATABASE_URL=postgres://postgres/annotator
-      - FLASK_DEBUG=1
+      - FLASK_DEBUG=0
+      - PGHOST=postgres
+      - PGUSER=postgres
     networks:
       - labelling
-
-  shell:
-    build:
-      context: ./
-      dockerfile: Dockerfile
-    environment:
-      - FLASK_APP=/app/annotator/app.py
-      - DATABASE_URL=postgres://postgres/annotator
-      - FLASK_DEBUG=1
-    networks:
-      - labelling
-    command: flask shell
 
   postgres:
     image: postgres:11.5-alpine
