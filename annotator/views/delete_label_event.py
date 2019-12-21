@@ -3,7 +3,7 @@ from flask_login import login_required
 
 from annotator import app
 from annotator.extensions import db
-from annotator.models import Dataset, LabelEvent, ProblemLabel
+from annotator.models import Dataset, LabelEvent, ProblemLabel, Problem
 from annotator.utils import assert_rights_to_problem
 
 
