@@ -11,6 +11,7 @@ services:
       - FLASK_APP=/app/annotator/app.py
       - DATABASE_URL=postgres://postgres/annotator
       - FLASK_DEBUG=0
+      - SECRET_KEY=123123
       - PGHOST=postgres
       - PGUSER=postgres
     networks:
