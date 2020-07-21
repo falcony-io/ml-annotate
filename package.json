@@ -6,7 +6,7 @@
   "author": "Teemu Kokkonen <teemu.kokkonen@fastmonkeys.com>",
   "license": "MIT",
   "dependencies": {
-    "axios": "^0.16.2",
+    "axios": "^0.18.1",
     "babel-cli": "^6.26.0",
     "babel-loader": "^7.1.2",
     "babel-preset-react": "^6.24.1",
